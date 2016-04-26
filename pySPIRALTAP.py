@@ -29,7 +29,7 @@
 # =                                  Inputs                                   =
 # =============================================================================
 # Required Inputs:
-#	y               Degraded observations.  For this documenation, we say
+#   y               Degraded observations.  For this documenation, we say
 #                   that y has m total elements.
 #
 #   A               Sensing / observation matrix.  For this documentation, 
@@ -108,20 +108,21 @@
 
 # ==== Importations
 from __future__ import print_function
-import sys, time
+import sys, time, datetime
 import numpy as np
 
-# ==== Error function
+# ==== Error & helpter functions
 def todo():
     """Not implemented error function"""
     print('ERROR: This function is not yet implemented, please be patient!', file=sys.stderr)
 
-# ==== Helper functions
+## TODO: write stopif function
+    
 def computegrad(y, Ax, AT, noisetype, logepsilon):
     """Compute the gradient"""
-    if noisetype == 'poisson':
+    if noisetype.lower() == 'poisson':
         return AT(1 - (y/(Ax + logepsilon)))
-    elif noisetype == 'gaussian':
+    elif noisetype.lower() == 'gaussian':
         return AT(Ax - y)
     else:
         print ("ERROR: undefined 'noisetype' in computegrad", file=sys.stderr)
@@ -163,9 +164,9 @@ def computegrad(y, Ax, AT, noisetype, logepsilon):
 def computesubsolution(step, tau, alpha, penalty, mu, varargin):
     """Denoising subproblem computation"""
     if penalty.lower() == 'canonical':
-        return max(step - tau./alpha + mu, 0.0)
+        return max(step - tau/alpha + mu, 0.0)
     else:
-        todo()
+        todo() ## Only partially implemented, see below.
 # function subsolution = computesubsolution(step,tau,alpha,penalty,mu,varargin)
 #     switch lower(penalty)
 #         case 'canonical'
@@ -249,7 +250,7 @@ def SPIRALTAP(y, A, tau,
               acceptdecrease=0.1, acceptpast=10, acceptmult=2,        # Acceptance criterion
               stopcriterion=1, miniter=5, maxiter=100, tolerance=1e-6,# Termination criterion
               saveobjective=0, computereconerror=0, reconerrortype=0, # Output parameters
-              savecputime=0, savesolutionpath=0,
+              savecputime=0, savesolutionpath=0, savereconerror=0,    # Output parameters
               **kwargs):
     """
     Main SPIRALTAP function
@@ -392,7 +393,11 @@ def SPIRALTAP(y, A, tau,
         if recenter: # Ensure that recentering is not set
             todo()
 
-    # % Things to check and compute that depend on PENALTY:
+    ## Things to check and compute that depend on PENALTY:
+    if penalty.lower() == 'canonical':
+        pass
+    elif penalty.lower() == 'onb':
+        todo()
     # switch lower(penalty)
     #     case 'canonical'
 
@@ -489,30 +494,26 @@ def SPIRALTAP(y, A, tau,
     #         end
     # end
 
-    ## ==== Initialize (again)
-    # % check that initialization is a scalar or a vector
-    # % set initialization
-    # if isempty(initialization);
-    #     xinit = AT(y);
-    # else
-    #     xinit = initialization;
-    # end
+    ## ==== check that initialization is a scalar or a vector
+    if initialization == []: ## set initialization
+        xinit = AT(y)
+    else:
+        xinit = initialization
+    
+    if recenter:
+        print ("WARNING: This part of the code has not been debugged", file=sys.stderr)
+        Aones = A(np.ones_like(xinit))
+        meanAones(Aones.mean())
+        meany = y.mean()
+        y -= meany
+        mu = meany/meanAones
+        # Define new function calls for 'recentered' matrix
+        A = lambda x: A(x) - meanAones*x.sum()/xinit.size
+        AT = lambda x: AT(x) - meanAones*x.sum()/xinit.size
+        xinit = xinit - mu # Adjust Initialization
+        print ("WARNING: This part of the code has not been debugged", file=sys.stderr)
 
-    # if recenter
-    #     Aones = A(ones(size(xinit)));
-    #     meanAones = mean(Aones(:));
-    #     meany = mean(y(:));
-    #     y = y - meany;
-    #     mu = meany./meanAones;
-    #     % Define new function calls for 'recentered' matrix
-    #     A = @(x) A(x) - meanAones*sum(x(:))./length(xinit(:));
-    #     AT = @(x) AT(x) - meanAones*sum(x(:))./length(xinit(:));
-    #     % Adjust Initialization
-    #     xinit = xinit - mu;
-    # end
-
-
-    # % ---- Check for validity of output parameters ----
+    ## ==== Check for validity of output parameters (Matlab specific code)
     # % Check if there are too many or not enough
     # if (nargout == 0) && warnings
     #         disp('Warning:  You should reconsider not saving the output!');
@@ -529,61 +530,56 @@ def SPIRALTAP(y, A, tau,
     # end
 
     ## ==== Prepare for running the algorithm (The below assumes that all parameters above are valid)
-    # % Initialize Main Algorithm 
-    # x = xinit;
-    # Ax = A(x);
-    # alpha = alphainit;
-    # Axprevious = Ax;
-    # xprevious = x;
-    # grad = computegrad(y,Ax,AT,noisetype,logepsilon);
+    ## Initialize Main Algorithm
+    x = xinit
+    Ax = A(x)
+    alpha = alphainit
+    Axprevious = Ax
+    xprevious = x
+    grad = computegrad(y, Ax, AT, noisetype, logepsilon)
 
-    # % Prealocate arrays for storing results
-    # % Initialize cputime and objective empty anyway (avoids errors in subfunctions):
-    # cputime = [];
-    # objective = [];
+    ## Prealocate arrays for storing results
+    # Initialize cputime and objective empty anyway (avoids errors in subfunctions):
+    cputime = []
+    objectivce = []
 
-    # if savecputime
-    #     cputime = zeros(maxiter+1,1);
-    # end
-    # if saveobjective
-    #     objective = zeros(maxiter+1,1);
-    #     objective(iter) = computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT);
-    # end
-    # if savereconerror
-    #     reconerror = zeros(maxiter+1,1);
-    #     switch reconerrortype
-    #         case 0 % RMS Error
-    #             normtrue = sqrt( sum(truth(:).^2) );
-    #             computereconerror = @(x) sqrt( sum( (x(:) + mu - truth(:) ).^2))./normtrue;
-    #         case 1 % Relative absolute error
-    #             normtrue = sum( abs(truth(:)) );
-    #             computereconerror = @(x) sum( abs (x(:) + mu - truth(:)) )./normtrue;
-    #     end
-    #     reconerror(iter) = computereconerror(xinit);
-    # end
-
-    # if savesolutionpath
-    #     % Note solutionpath(1).step will always be zeros since having an 
-    #     % 'initial' step does not make sense
-    #     solutionpath(1:maxiter+1) = struct('step',zeros(size(xinit)),...
-    #         'iterate',zeros(size(xinit)));
-    #     solutionpath(1).iterate = xinit;
-    # end
-
-    # if (verbose > 0)
-    #     thetime = fix(clock);
-    #     fprintf(['=========================================================\n',...
-    #         '= Beginning SPIRAL Reconstruction    @ %2d:%2d %02d/%02d/%4d =\n',...
-    #         '=   Noisetype: %-8s         Penalty: %-9s      =\n',...
-    #         '=   Tau:       %-10.5e      Maxiter: %-5d          =\n',...
-    #         '=========================================================\n'],...
-    #         thetime(4),thetime(5),thetime(2),thetime(3),thetime(1),...
-    #         noisetype,penalty,tau,maxiter)      
-    # end
+    if savecputime:
+        cputime = np.zeros((maxiter+1))
+    if saveobjective:
+        print("ERROR: this part of the code is not implemented yet", file=sys.stderr)
+        objective = np.zeros((maxiter+1))
+        objective[iter] = computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT)
+    if savereconerror:
+        reconerror = np.zeros((maxiter+1))
+        if reconerrortype == 0: # RMS error
+            normtrue = (truth**2).sum()**0.5
+            computereconerror = lambda x: ((x+mu-truth)**2).sum()**0.5/normtrue
+        elif reconerrortype == 1:
+            normtrue = np.abs(truth).sum()
+            computereconerror = lambda x: np.abs(x+mu-truth).sum()/normtrue
+        reconerror[iter] = computereconerror(xinit)
+    if savesolutionpath:
+        pass
+        #     % Note solutionpath(1).step will always be zeros since having an 
+        #     % 'initial' step does not make sense
+        #     solutionpath(1:maxiter+1) = struct('step',zeros(size(xinit)),...
+        #         'iterate',zeros(size(xinit)));
+        #     solutionpath(1).iterate = xinit;
 
 
+    if verbose>0:
+        txt = """
+===================================================================
+= Beginning SPIRAL Reconstruction    @ {} =
+=   Noisetype: {}               Penalty: {}           =
+=   Tau:       {}                 Maxiter: {}                 =
+===================================================================
+"""
+        txt = txt.format(datetime.datetime.now(), noisetype, penalty, tau, maxiter)
+        print(txt)
     
     tic=time.time() # Start clock for calculating computation time.
+    
     ## =============================
     ## = Begin Main Algorithm Loop =
     ## =============================
