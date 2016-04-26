@@ -11,4 +11,4 @@ Original source: http://drz.ac/code/spiraltap/. The algorithm is described in th
 # Disclaimer
 
 1. License: I am unsure about the license of the code
-2. Code: still experimental
+2. Code: still experimental (only alphamethod=0 seems to be working)

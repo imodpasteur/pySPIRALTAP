@@ -11,6 +11,7 @@
 # ==== importations
 import pySPIRALTAP
 import numpy as np
+import matplotlib.pyplot as plt
 import scipy.io # to import.mat files
 
 # ==== variables
@@ -82,32 +83,31 @@ if demo == 1:
     #     'verbose',verbose);
     fhatSPIRAL = pySPIRALTAP.SPIRALTAP(y,A,tau,
                                        AT=AT,
-                                       verbose=1)
-    
-    # % Display Results:
-    # % Problem Data:
-    # figure(1); clf
-    # subplot(3,1,1)
-    #     stem(f)
-    #     title(['True Signal (f), Nonzeros = ',num2str(sum(f ~= 0)),...
-    #         ' Mean Intensity = ',num2str(mean(f))])
-    #     ylim([0 1.25.*max(f)])
-    # subplot(3,1,2)
-    #     stem(A(f))
-    #     title(['True Detector Intensity (Af), Mean Intensity = ',...
-    #         num2str(mean(A(f)))])
-    # subplot(3,1,3)
-    #     stem(y)
-    #     title(['Observed Photon Counts (y), Mean Count = ',...
-    #         num2str(mean(y))])
+                                       verbose=5, alphamethod=0, savecputime=1)[0]
 
-    # % Reconstructed Signals:
-    # figure(2); clf
-    # stem(f,'b')
-    # hold on
-    # stem(fhatSPIRAL,'r')
-    # hold off
-    # xlabel('Sample Number'); ylabel('Amplitude')
+    ## ==== Display Results:
+    ## Problem Data:
+    plt.figure(1)
+    plt.subplot(311)
+    plt.plot(f)
+    plt.title('True Signal (f), Nonzeros = {}, Mean Intensity = {}'.format((f!=0).sum(), f.mean()))
+    plt.ylim((0, 1.24*f.max()))
+
+    plt.subplot(312)
+    plt.plot(A(f))
+    plt.title('True Detector Intensity (Af), Mean Intensity = {}'.format(A(f).mean()))
+
+    plt.subplot(313)
+    plt.plot(y)
+    plt.title('Observed Photon Counts (y), Mean Count = {}'.format(y.mean()))
+
+    ## Reconstructed Signals:
+    plt.figure(2)
+    plt.plot(f, color='blue')
+    plt.plot(fhatSPIRAL, color='red')
+    plt.xlabel('Sample number')
+    plt.ylabel('Amplitude')
+    plt.title('SPIRAL Estimate, RMS error = {}, Nonzero Components = {}'.format('NA', (fhatSPIRAL!=0).sum()))
     # title({'SPIRAL Estimate',['RMS Error = ',...
     #     num2str(norm(f(:) - fhatSPIRAL(:))./norm(f(:)))],...
     #     ['Nonzero Components = ',...
@@ -134,3 +134,5 @@ if demo == 1:
     #     plot(cputimeSPIRAL, objectiveSPIRAL,'b')
     #         xlabel('CPU Time'); ylabel('Objective')
     #     title('Objective Evolution (CPU Time)')
+
+    plt.show()
