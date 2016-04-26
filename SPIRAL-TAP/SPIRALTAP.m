@@ -583,7 +583,8 @@ while (iter <= miniter) || ((iter <= maxiter) && not(converged))
                 W,WT,subminiter,submaxiter,substopcriterion,...
                 subtolerance);
             dx = x - dx;
-            Ax = A(x);            
+            Ax = A(x);
+            acceptalpha = alpha;  % Keep value for displaying (MW addition)
             
         case 1 % Barzilai-Borwein choice of alpha
             if monotone 

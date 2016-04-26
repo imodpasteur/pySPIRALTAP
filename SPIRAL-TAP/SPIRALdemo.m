@@ -82,7 +82,7 @@ switch demo
             'savesolutionpath',0,...
             'truth',f,...
             'verbose',verbose);
-        
+       
         % Display Results:
         % Problem Data:
         figure(1); clf
