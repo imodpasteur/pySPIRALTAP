@@ -83,7 +83,7 @@ if demo == 1:
     #     'verbose',verbose);
     fhatSPIRAL = pySPIRALTAP.SPIRALTAP(y,A,tau,
                                        AT=AT,
-                                       verbose=5, alphamethod=0, savecputime=1)[0]
+                                       verbose=5, alphamethod=0, savecputime=True)[0]
 
     ## ==== Display Results:
     ## Problem Data:

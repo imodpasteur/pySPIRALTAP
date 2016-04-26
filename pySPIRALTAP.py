@@ -239,8 +239,8 @@ def SPIRALTAP(y, A, tau,
               alphainit=1, alphamin=1e-30, alphamax=1e30,             # Barz-Bor Scheme
               acceptdecrease=0.1, acceptpast=10, acceptmult=2,        # Acceptance criterion
               stopcriterion=1, miniter=5, maxiter=100, tolerance=1e-6,# Termination criterion
-              saveobjective=0, computereconerror=0, reconerrortype=0, # Output parameters
-              savecputime=0, savesolutionpath=0, savereconerror=0,    # Output parameters
+              saveobjective=False, computereconerror=False, reconerrortype=0, # Output parameters
+              savecputime=False, savesolutionpath=False, savereconerror=False,    # Output parameters
               **kwargs):
     """
     Main SPIRALTAP function
@@ -340,38 +340,18 @@ def SPIRALTAP(y, A, tau,
         if truth.min() < 0:
             raise ValueError("The size of ''TRUTH'' is incompatable with the given sensing matrix ''A''.")
 
-    print("WARNING: Not all input parameters are validated so far", file=sys.stderr)
-    # % SAVEOBJECTIVE:  Just a binary indicator, check if not equal to 0 or 1.
-    # if (numel(saveobjective) ~= 1)  || (sum( saveobjective == [0 1] ) ~= 1)
-    #     error(['The option to save the objective evolution ',...
-    #         'SAVEOBJECTIVE'' ',...
-    #         'must be a binary scalar (either 0 or 1).'])
-    # end     
-    # % SAVERECONERROR:  Just a binary indicator, check if not equal to 0 or 1.
-    # % If equal to 1, truth must be provided.
-    # if (numel(savereconerror) ~= 1)  || (sum( savereconerror == [0 1] ) ~= 1)
-    #     error(['The option to save the reconstruction error ',...
-    #         'SAVERECONERROR'' ',...
-    #         'must be a binary scalar (either 0 or 1).'])
-    # end
-    # if savesolutionpath && isempty(truth)
-    #     error(['The option to save the reconstruction error ',...
-    #         '''SAVERECONERROR'' can only be used if the true signal ',...
-    #         '''TRUTH'' is provided.'])
-    # end
-    # % SAVECPUTIME: Just a binary indicator, check if not equal to 0 or 1.
-    # if (numel(savecputime) ~= 1)  || (sum( savecputime == [0 1] ) ~= 1)
-    #     error(['The option to save the computation time ',...
-    #         'SAVECPUTIME'' ',...
-    #         'must be a binary scalar (either 0 or 1).'])
-    # end
-    # % SAVESOLUTIONPATH: Just a binary indicator, check if not equal to 0 or 1.
-    # if (numel(savesolutionpath) ~= 1)  || (sum( savesolutionpath == [0 1] ) ~= 1)
-    #     error(['The option to save the solution path ',...
-    #         'SAVESOLUTIONPATH'' ',...
-    #         'must be a binary scalar (either 0 or 1).'])
-    # end
-
+    if not type(saveobjective)==bool:
+        raise TypeError("The option to save the objective evolution 'saveobjective' must be a boolean, True or False")
+    if not type(savereconerror)==bool:
+        raise TypeError("The option to save the reconstruction error 'savereconerror' must be a boolean, True or False")
+    if (savesolutionpath and truth==[]) or (savereconerror and truth==[]):
+        raise TypeError("The option to save the reconstruction error ''SAVERECONERROR'' can only be used if the true signal ''TRUTH'' is provided.")
+    if not type(savecputime)==bool:
+        print (savecputime)
+        raise TypeError("The option to save the computation time 'cputime' must be a boolean, True or False")
+    if not type(savesolutionpath)==bool:
+        raise TypeError("The option to save the computation time 'savesolutionpath' must be a boolean, True or False")
+    
     ## ==== Initialize method-dependent parameters
     ## Things to check and compute that depend on NOISETYPE:
     if noisetype.lower() == 'poisson':
