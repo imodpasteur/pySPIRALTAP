@@ -68,42 +68,42 @@
 # 
 # Optional Outputs:
 #   The optional outputs are in the following order:
-#       optionalOutputs = [iter, objective, reconerror, cputime, solutionpath]
+#       optionalOutputs = [itern, objective, reconerror, cputime, solutionpath]
 #
-#   iter            The total number of iterations performed by the 
+#   itern            The total number of iternations performed by the 
 #                   algorithm.  Clearly this number will be between miniter
 #                   and maxiter and will depend on the chosen stopping
-#                   criteria. 
+#                   criternia. 
 #
 #   objective       The evolution of the objective function with the number
-#                   of iterations.  The initial value of the objective
+#                   of iternations.  The initial value of the objective
 #                   function is stored in objective(1), and hence the 
-#                   length of objective will be iter + 1.
+#                   length of objective will be itern + 1.
 #
 #   reconerror      The evolution of the specified error metric with the
-#                   number of iterations.  The reconstruction error can
+#                   number of iternations.  The reconstruction error can
 #                   only be computed if the true underlying signal or image
 #                   is provided using the 'TRUTH' option.  The error
 #                   corresponding to the initial value is stored in
 #                   reconerror(1), and hence the length of reconerror will
-#                   be iter + 1.
+#                   be itern + 1.
 #                   
 #   cputime         Keeps track of the total elapsed time to reach each
-#                   iteration.  This provides a better measure of the
+#                   iternation.  This provides a better measure of the
 #                   computational cost of the algorithm versus counting
-#                   the number of iterations.  The clock starts at time
+#                   the number of iternations.  The clock starts at time
 #                   cputime(1) = 0 and hence the length of cputime will
-#                   also be iter + 1.
+#                   also be itern + 1.
 #
-#   solutionpath    Provides a record of the intermediate iterates reached
+#   solutionpath    Provides a record of the intermediate iternates reached
 #                   while computing the solution x.  Both the "noisy" step
-#                   solutionpath.step and the "denoised" iterate
-#                   solutionpath.iterate are saved.  The initialialization
-#                   for the algorithm is stored in solutionpath(1).iterate.
+#                   solutionpath.step and the "denoised" iternate
+#                   solutionpath.iternate are saved.  The initialialization
+#                   for the algorithm is stored in solutionpath(1).iternate.
 #                   Since there is no corresponding initial step, 
 #                   solutionpath(1).step contains all zeros.  Like all 
 #                   the other output variables, the length of solutionpath
-#                   will be iter + 1.
+#                   will be itern + 1.
 #
 
 # ==== Importations
@@ -115,6 +115,7 @@ import numpy as np
 def todo():
     """Not implemented error function"""
     print('ERROR: This function is not yet implemented, please be patient!', file=sys.stderr)
+    raise NotImplementedError
 
 ## TODO: write stopif function
     
@@ -127,36 +128,28 @@ def computegrad(y, Ax, AT, noisetype, logepsilon):
     else:
         print ("ERROR: undefined 'noisetype' in computegrad", file=sys.stderr)
 
-# % ==========================
-# % = Objective Computation: =
-# % ==========================
-# function objective = computeobjective(x,y,Ax,tau,noisetype,logepsilon,...
-#     penalty,varargin)
-# % Perhaps change to varargin 
-# % 1) Compute log-likelihood:
-# switch lower(noisetype)
-#     case 'poisson'
-#         precompute = y.*log(Ax + logepsilon);
-#         objective = sum(Ax(:)) - sum(precompute(:));
-#     case 'gaussian'
-#         objective = sum( (y(:) - Ax(:)).^2)./2;
-# end
-# % 2) Compute Penalty:
-# switch lower(penalty)
-#     case 'canonical'
-#         objective = objective + sum(abs(tau(:).*x(:)));
-# 	case 'onb' 
-#     	WT = varargin{1};
-#         WTx = WT(x);
-#         objective = objective + sum(abs(tau(:).*WTx(:)));
-# 	case 'rdp'
-#         todo
-#     case 'rdp-ti'
-#         todo
-#     case 'tv'
-#         objective = objective + tau.*tlv(x,'l1');
-# end
-# end
+def computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT):
+    """Compute the objective function"""
+    ## (1) Compute log-likelyhood
+    if noisetype.lower()=='poisson':
+        precompute = y*np.log(Ax + logepsilon)
+        objective = Ax.sum() - precompute.sum()
+    elif noisetype.lower()=='gaussian':
+        objective = ((y-Ax)**2).sum()/2
+        
+    ## (2) Compute penalty
+    if penalty.lower=='canonical':
+        objective += np.abs(tau*x).sum()
+    elif penalty.lower=='onb':
+        WTx = WT(x)
+        objective += np.abs(tau*WTx).sum()
+    elif penalty.lower=='rdp':
+        todo()
+    elif penalty.lower=='rdp-ti':
+        todo()
+    elif penalty.lower=='tv':
+        objective += tau*tlv(x,'l1') ## tlv comes from the toolbox
+    return objective
 
 # % =====================================
 # % = Denoising Subproblem Computation: =
@@ -207,19 +200,19 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
 # end
 
 # % =====================================
-# % = Termination Criteria Computation: =
+# % = Termination Criternia Computation: =
 # % =====================================
-def checkconvergence(iter,miniter,stopcriterion,tolerance, dx, x, cputime, objective):
+def checkconvergence(itern,miniter,stopcriterion,tolerance, dx, x, cputime, objective):
     converged = 0
-    if iter >= miniter: # no need to check if miniter not yet exceeded
-        if stopcriterion == 1: # Simply exhaust the maximum iteration budget
+    if itern >= miniter: # no need to check if miniter not yet exceeded
+        if stopcriterion == 1: # Simply exhaust the maximum iternation budget
             converged = 0
         elif stopcriterion == 2: # Terminate after a specified CPU time (in seconds)
             converged = cputime >= tolerance
-        elif stopcriterion == 3: # Relative changes in iterate
+        elif stopcriterion == 3: # Relative changes in iternate
             converged = dx.sum()**2/x.sum()**2 <= tolerance**2
         elif stopcriterion == 4: # relative changes in objective
-            converged = np.abs(objective[iter]-objective[iter-1])/abs(objective[iter-1]) <=tolerance
+            converged = np.abs(objective[itern]-objective[itern-1])/abs(objective[itern-1]) <=tolerance
         elif stopcriterion == 5: # complementarity condition
             todo()
         elif stopcriterion == 6: # Norm of lagrangian gradient
@@ -229,7 +222,7 @@ def checkconvergence(iter,miniter,stopcriterion,tolerance, dx, x, cputime, objec
 
 # ==== Main functions
 def SPIRALTAP(y, A, tau,
-              verbose=0, converged=0, iter=1,     # Generic
+              verbose=0, converged=0, itern=1,     # Generic
               AT=[] ,truth=[], initialization=[], # Generic
               warnings=1, recenter=0, mu=0,       # Generic
               noisetype='Poisson', logepsilon=1e-10, sqrty=[],        # Poisson noise
@@ -289,12 +282,12 @@ def SPIRALTAP(y, A, tau,
     ## MINITER and MAXITER:  Need to check that they are nonnegative integers and
     ## that miniter <= maxiter todo
     if miniter <= 0 or maxiter <= 0:
-        raise TypeError("The numbers of iterations ''MINITER'' = {} and ''MAXITER'' = {} should be non-negative.".format(miniter, maxiter))
+        raise TypeError("The numbers of iternations ''MINITER'' = {} and ''MAXITER'' = {} should be non-negative.".format(miniter, maxiter))
     if miniter > maxiter:
-        raise TypeError("The minimum number of iterations ''MINITER'' = {} exceeds the maximum number of iterations ''MAXITER'' = {}.".format(miniter, maxiter))
+        raise TypeError("The minimum number of iternations ''MINITER'' = {} exceeds the maximum number of iternations ''MAXITER'' = {}.".format(miniter, maxiter))
 
     if subminiter > submaxiter:
-         raise TypeError("The minimum number of subproblem iterations ''SUBMINITER'' = {} exceeds the maximum number of subproblem iterations ''SUBMAXITER'' = {}".format(subminiter, subbmaxiter))
+         raise TypeError("The minimum number of subproblem iternations ''SUBMINITER'' = {} exceeds the maximum number of subproblem iternations ''SUBMAXITER'' = {}".format(subminiter, subbmaxiter))
 
     # Matrix dimensions
     # AT:  If A is a matrix, AT is not required, but may optionally be provided.
@@ -309,7 +302,7 @@ def SPIRALTAP(y, A, tau,
             raise TypeError("Parameter ''AT'' not specified.  Please provide a method to compute A''*x matrix-vector products.")
         else:
             try:
-                dummy = y + A(AT(y))
+                dummy = y + A(AT(y).copy()).copy()
                 if not hasattr(AT, '__call__'):
                     raise TypeError('AT should be provided as a function handle, because so is A')
             except:
@@ -322,7 +315,7 @@ def SPIRALTAP(y, A, tau,
         else: # A is a matrix, and AT provided, we need to check
             if hasattr(AT, '__call__'): # A is a matrix, AT is a function call
                 try: 
-                    dummy = y + A(AT(y))
+                    dummy = y + A(AT(y).copy()).copy()
                 except:
                     raise TypeError('Size incompatability between ''A'' and ''AT''.')
             else: #A and AT are matrices
@@ -472,12 +465,13 @@ def SPIRALTAP(y, A, tau,
     
     if recenter:
         print ("WARNING: This part of the code has not been debugged", file=sys.stderr)
-        Aones = A(np.ones_like(xinit))
+        Aones = A(np.ones_like(xinit)).copy()
         meanAones(Aones.mean())
         meany = y.mean()
         y -= meany
         mu = meany/meanAones
         # Define new function calls for 'recentered' matrix
+        print('recentering')
         A = lambda x: A(x) - meanAones*x.sum()/xinit.size
         AT = lambda x: AT(x) - meanAones*x.sum()/xinit.size
         xinit = xinit - mu # Adjust Initialization
@@ -502,7 +496,7 @@ def SPIRALTAP(y, A, tau,
     ## ==== Prepare for running the algorithm (The below assumes that all parameters above are valid)
     ## Initialize Main Algorithm
     x = xinit
-    Ax = A(x)
+    Ax = A(x).copy()
     alpha = alphainit
     Axprevious = Ax
     xprevious = x
@@ -516,7 +510,7 @@ def SPIRALTAP(y, A, tau,
 
     if saveobjective:
         print("ERROR: this part of the code is not implemented yet", file=sys.stderr)
-        objective[iter-1] = computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT)
+        objective[itern-1] = computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT)
     if savereconerror:
         reconerror = np.zeros((maxiter+1))
         if reconerrortype == 0: # RMS error
@@ -525,14 +519,14 @@ def SPIRALTAP(y, A, tau,
         elif reconerrortype == 1:
             normtrue = np.abs(truth).sum()
             computereconerror = lambda x: np.abs(x+mu-truth).sum()/normtrue
-        reconerror[iter-1] = computereconerror(xinit)
+        reconerror[itern-1] = computereconerror(xinit)
     if savesolutionpath:
         pass
         #     % Note solutionpath(1).step will always be zeros since having an 
         #     % 'initial' step does not make sense
         #     solutionpath(1:maxiter+1) = struct('step',zeros(size(xinit)),...
-        #         'iterate',zeros(size(xinit)));
-        #     solutionpath(1).iterate = xinit;
+        #         'iternate',zeros(size(xinit)));
+        #     solutionpath(1).iternate = xinit;
 
 
     if verbose>0:
@@ -551,57 +545,92 @@ def SPIRALTAP(y, A, tau,
     ## =============================
     ## = Begin Main Algorithm Loop =
     ## =============================
-    while (iter <= miniter) or ((iter <= maxiter) and not converged):
+    while (itern <= miniter) or ((itern <= maxiter) and not converged):
         ## ==== Compute solution
-        if alphamethod == 0: # Constant alpha throughout all iterations.
-            # If convergence criteria requires it, compute dx or dobjective
+        if alphamethod == 0: # Constant alpha throughout all iternations.
+            # If convergence criternia requires it, compute dx or dobjective
             dx = xprevious
             step = xprevious - grad/alpha
             x = computesubsolution(step, tau, alpha, penalty, mu, W, WT,
                                    subminiter, submaxiter, substopcriterion, subtolerance)
             dx = x - dx
-            Ax = A(x)
+            Ax = A(x).copy()
         elif alphamethod == 1: # Barzilai-Borwein choice of alpha
-            todo() ## not implemented, see below
+            if monotone: #do acceptance criterion.
+                past = np.arange(max(itern-1-acceptpast,0),itern)
+                maxpastobjective =  objective[past].max()
+                accept=0
+                while accept==0:
+                    ## Compute the step and perform gaussian denoising subproblem
+                    dx = xprevious
+                    step = xprevious - grad/alpha
+                    x = computesubsolution(step, tau, alpha, penalty, mu, W, WT,
+                                           subminiter, submaxiter, substopcriterion, subtolerance)
+                    dx = x - dx
+                    print (x.dtype)
+                    Adx = Axprevious
+                    Ax = A(x).copy()
+                    Adx = Ax - Adx
+                    normsqdx = (dx**2).sum()
 
+                    ## Compute the resulting objective
+                    objective[itern] = computeobjective(x,y,Ax,tau,
+                                                        noisetype,logepsilon,penalty,WT)
+                    if (objective[itern] <= (maxpastobjective-acceptdecrease*alpha/2*normsqdx)) or (alpha >= acceptalphamax):
+                        accept = 1
+                    acceptalpha=alpha #Keep value for displaying
+                    alpha = acceptmult*alpha
+            else: #just take bb setp, no enforcing monotonicity.
+                dx = xprevious
+                step = xprevious - grad/alpha
+                x = computesubsolution(step,tau,alpha,penalty,mu,
+                                       W,WT,subminiter,submaxiter,substopcriterion, subtolerance)
+                dx = x - dx
+                Adx = Axprevious
+                Ax = A(x).copy()
+                Adx = Ax - Adx
+                normsqdx = (dx**2).sum()
+                if saveobjective:
+                    objective[itern] = computeobjective(x, y, Ax, tau, noisetype,
+                                                       logepsilon, penalty,WT);
         ## ==== Calculate Output Quantities
         if savecputime:
-            cputime[iter] = time.time()-tic
+            cputime[itern] = time.time()-tic
         if savereconerror:
-            reconerror[iter] = computereconerror(x)
+            reconerror[itern] = computereconerror(x)
         if savesolutionpath:
             print("ERROR: this option is not implemented 'savesolutionpath'", file=sys.stderr)
-            solutionpath(iter).step = step
-            solutionpath(iter).iterate = x
+            solutionpath(itern).step = step
+            solutionpath(itern).iterate = x
 
-        ## Needed for next iteration and also termination criteria
+        ## Needed for next iternation and also termination criternia
         grad = computegrad(y,Ax,AT,noisetype,logepsilon)
-        converged = checkconvergence(iter,miniter,stopcriterion,tolerance,
-                                     dx, x, cputime[iter], objective)
+        converged = checkconvergence(itern,miniter,stopcriterion,tolerance,
+                                     dx, x, cputime[itern], objective)
 
         ## ==== Display progress
-        if verbose > 0 and iter % verbose == 0:
-            txt = 'Iter: {}, ||dx||%%: {}, Alph: {}'.format(iter,
+        if verbose > 0 and itern % verbose == 0:
+            txt = 'Itern: {}, ||dx||%%: {}, Alph: {}'.format(itern,
                                                         100*np.linalg.norm(dx)/np.linalg.norm(x),
                                                             alpha)
             ## use of np.linalg.norm could probably be removed
             if monotone and alphamethod==1:
                 txt += ', Alph Acc: {}'.format(acceptalpha)
             if savecputime:
-                txt += ', Time: {}'.format(cputime[iter])
+                txt += ', Time: {}'.format(cputime[itern])
             if saveobjective:
-                txt += ', Obj: {}, dObj%%: {}'.format(objective[iter],
-                            100*np.abs(objective[iter]-objective[iter-1])/np.abs(objective[iter-1]))
+                txt += ', Obj: {}, dObj%%: {}'.format(objective[itern],
+                            100*np.abs(objective[itern]-objective[itern-1])/np.abs(objective[itern-1]))
             if savereconerror:
-                txt += ', Err: {}'.format(reconerror[iter])
+                txt += ', Err: {}'.format(reconerror[itern])
             print(txt)
 
-        ## ==== Prepare for next iteration
+        ## ==== Prepare for next iternation
         ## Update alpha
         if alphamethod == 0:
             pass # do nothing, constant alpha
         elif alphamethod == 1: # BB method
-            # Adx is overwritten at top of iteration, so this is an ok reuse
+            # Adx is overwritten at top of iternation, so this is an ok reuse
             if noisetype.lower() == 'poisson':
                 Adx = Adx*sqrty/(Ax + logepsilon)
             elif noisetype.lower() == 'gaussian':
@@ -613,85 +642,32 @@ def SPIRALTAP(y, A, tau,
                 alpha = gamma/normsqdx
                 alpha = min(alphamax, max(alpha, alphamin))
                 
-        ## ==== Store current values as previous values for next iteration
+        ## ==== Store current values as previous values for next iternation
         xprevious = x
         Axprevious = Ax
-        iter += 1
+        itern += 1
     ## ===========================
     ## = End Main Algorithm Loop =
     ## ===========================
         
-    #         case 1 % Barzilai-Borwein choice of alpha
-    #             if monotone 
-    #                 % do acceptance criterion.
-    #                 past = (max(iter-1-acceptpast,0):iter-1) + 1;
-    #                 maxpastobjective = max(objective(past));
-    #                 accept = 0;
-    #                 while (accept == 0)
-
-    #                     % --- Compute the step, and perform Gaussian 
-    #                     %     denoising subproblem ----
-    #                     dx = xprevious;
-    #                     step = xprevious - grad./alpha;
-    #                     x = computesubsolution(step,tau,alpha,penalty,mu,...
-    #                         W,WT,subminiter,submaxiter,substopcriterion,...
-    #                         subtolerance);
-    #                     dx = x - dx;
-    #                     Adx = Axprevious;
-    #                     Ax = A(x);
-    #                     Adx = Ax - Adx;
-    #                     normsqdx = sum( dx(:).^2 );
-
-    #                     % --- Compute the resulting objective 
-    #                     objective(iter + 1) = computeobjective(x,y,Ax,tau,...
-    #                         noisetype,logepsilon,penalty,WT);
-
-    #                     if ( objective(iter+1) <= (maxpastobjective ...
-    #                             - acceptdecrease*alpha/2*normsqdx) ) ...
-    #                             || (alpha >= acceptalphamax);
-    #                         accept = 1;
-    #                     end
-    #                     acceptalpha = alpha;  % Keep value for displaying
-    #                     alpha = acceptmult*alpha;
-    #                 end
-    #             else 
-    #                 % just take bb setp, no enforcing monotonicity.
-    #                 dx = xprevious;
-    #                 step = xprevious - grad./alpha;
-    #                 x = computesubsolution(step,tau,alpha,penalty,mu,...
-    #                     W,WT,subminiter,submaxiter,substopcriterion,...
-    #                     subtolerance);
-    #                 dx = x - dx;
-    #                 Adx = Axprevious;
-    #                 Ax = A(x);
-    #                 Adx = Ax - Adx;
-    #                 normsqdx = sum( dx(:).^2 );
-    #                 if saveobjective
-    #                     objective(iter + 1) = computeobjective(x,y,Ax,tau,...
-    #                         noisetype,logepsilon,penalty,WT);
-    #                 end
-
-    #             end
-    #     end
-
     ## ==== Post process the output
     ## Add on mean if recentered (if not mu == 0);
     x = x + mu;
 
     ## Determine what needs to be in the variable output and
-    ## crop the output if the maximum number of iterations were not used.
-    ## Note, need to subtract 1 since iter is incremented at the end of the loop
-    iter = iter - 1;
-    varargout = [iter];
+    ## crop the output if the maximum number of iternations were not used.
+    ## Note, need to subtract 1 since itern is incremented at the end of the loop
+    itern = itern - 1;
+    varargout = [itern];
 
     if saveobjective:
-        varargout.append(objective[0:iter]) ## Useless bounds 1:iter+1 ???
+        varargout.append(objective[0:itern]) ## Useless bounds 1:itern+1 ???
     if savereconerror:
-        varargout.append(reconerror[0:iter])
+        varargout.append(reconerror[0:itern])
     if savecputime:
-        varargout.append(cputime[0:iter])
+        varargout.append(cputime[0:itern])
     if savesolutionpath:
-        varargout.append(solutionpath[0:iter])
+        varargout.append(solutionpath[0:itern])
 
     if verbose > 0:
         txt = """
