@@ -60,30 +60,29 @@ if demo == 1:
     finit = y.sum()*AT(y).size/AT(y).sum()/AT(np.ones_like(y)).sum() * AT(y)
 
     # ==== Run the algorithm:
-    # % Demonstrating all the options for our algorithm:
-    # [fhatSPIRAL, iterationsSPIRAL, objectiveSPIRAL,...
-    #     reconerrorSPIRAL, cputimeSPIRAL] ...
-    #     = SPIRALTAP(y,A,tau,...
-    #     'maxiter',maxiter,...
-    #     'Initialization',finit,...
-    #     'AT',AT,...
-    #     'miniter',5,...
-    #     'stopcriterion',3,...
-    #     'tolerance',tolerance,...
-    #     'alphainit',1,...
-    #     'alphamin', 1e-30,...
-    #     'alphamax', 1e30,...
-    #     'alphaaccept',1e30,...
-    #     'logepsilon',1e-10,...
-    #     'saveobjective',1,...
-    #     'savereconerror',1,...
-    #     'savecputime',1,...
-    #     'savesolutionpath',0,...
-    #     'truth',f,...
-    #     'verbose',verbose);
-    fhatSPIRAL = pySPIRALTAP.SPIRALTAP(y,A,tau,
-                                       AT=AT,
-                                       verbose=5, alphamethod=1, savecputime=True)[0]
+    ## Demonstrating all the options for our algorithm:
+    resSPIRAL = pySPIRALTAP.SPIRALTAP(y,A,tau,
+                                      AT=AT,
+                                      maxiter=maxiter,
+                                      miniter=5,
+                                      stopcriterion=3,
+                                      tolerance=tolerance,
+                                      alphainit=1,
+                                      alphamin=1e-30,
+                                      alphamax=1e30,
+                                      alphaaccept=1e30,
+                                      logepsilon=1e-10,
+                                      saveobjective=True,
+                                      savereconerror=True,
+                                      savesolutionpath=False,
+                                      truth=f,
+                                      verbose=verbose, savecputime=True)
+    fhatSPIRAL = resSPIRAL[0]
+    parSPIRAL = resSPIRAL[1]
+    iterationsSPIRAL = parSPIRAL['iterations']
+    objectiveSPIRAL = parSPIRAL['objective']
+    reconerrorSPIRAL = parSPIRAL['reconerror']
+    cputimeSPIRAL = parSPIRAL['cputime']
 
     ## ==== Display Results:
     ## Problem Data:
@@ -107,32 +106,31 @@ if demo == 1:
     plt.plot(fhatSPIRAL, color='red')
     plt.xlabel('Sample number')
     plt.ylabel('Amplitude')
-    plt.title('SPIRAL Estimate, RMS error = {}, Nonzero Components = {}'.format('NA', (fhatSPIRAL!=0).sum()))
-    # title({'SPIRAL Estimate',['RMS Error = ',...
-    #     num2str(norm(f(:) - fhatSPIRAL(:))./norm(f(:)))],...
-    #     ['Nonzero Components = ',...
-    #     num2str(sum(fhatSPIRAL~=0))]})
+    plt.title('SPIRAL Estimate, RMS error = {}, Nonzero Components = {}'.format(np.linalg.norm(f-fhatSPIRAL)/np.linalg.norm(f), (fhatSPIRAL!=0).sum()))
 
-    # % RMS Error:
-    # figure(3); clf
-    # subplot(2,1,1)
-    #     plot(0:iterationsSPIRAL,reconerrorSPIRAL,'b')
-    #     xlabel('Iteration'); ylabel('RMS Error')
-    #     title('RMS Error Evolution (Iteration)')
-    # subplot(2,1,2)
-    #     plot(cputimeSPIRAL, reconerrorSPIRAL,'b')
-    #     xlabel('CPU Time'); ylabel('RMS Error')
-    #     title('RMS Error Evolution (CPU Time)')
+    ## RMS Error:
+    plt.figure(3)
+    plt.subplot(211)
+    plt.plot(range(iterationsSPIRAL), reconerrorSPIRAL, color='blue')
+    plt.xlabel('Iteration')
+    plt.ylabel('RMS Error')
 
-    # % Objective:
-    # figure(4); clf
-    # subplot(2,1,1)
-    #     plot(0:iterationsSPIRAL,objectiveSPIRAL,'b')
-    #         xlabel('Iteration'); ylabel('Objective')
-    #     title('Objective Evolution (Iteration)')
-    # subplot(2,1,2)
-    #     plot(cputimeSPIRAL, objectiveSPIRAL,'b')
-    #         xlabel('CPU Time'); ylabel('Objective')
-    #     title('Objective Evolution (CPU Time)')
+    plt.subplot(212)
+    plt.plot(cputimeSPIRAL, reconerrorSPIRAL, color='blue')
+    plt.xlabel('CPU Time')
+    plt.ylabel('RMS Error')
+    plt.title('RMS Error Evolution (CPU Time)')
+
+    ## Objective:
+    plt.figure(4)
+    plt.subplot(211)
+    plt.plot(range(iterationsSPIRAL), objectiveSPIRAL)
+    plt.xlabel('Iteration')
+    plt.ylabel('Objective')
+    plt.subplot(212)
+    plt.plot(cputimeSPIRAL, objectiveSPIRAL)
+    plt.xlabel('CPU Time')
+    plt.ylabel('Objective')
+    plt.title('Objective Evolution (CPU Time)')
 
     plt.show()
