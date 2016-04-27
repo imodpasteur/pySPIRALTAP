@@ -10,5 +10,19 @@ Original source: http://drz.ac/code/spiraltap/. The algorithm is described in th
 
 # Disclaimer
 
-1. License: I am unsure about the license of the code
-2. Code: still experimental (only alphamethod=0 seems to be working)
+1. *License*: I am unsure about the license of the code
+2. *Code*: still experimental, many methods are not implemented
+
+# Usage/Example
+A simple working example can be run at:
+
+```{shell}
+python SPIRALdemo.py
+```
+
+This file contains one demo where a 1D signal is reconstructed using a $l1$ penalty. This demo uses `matplotlib` for plotting output.
+
+Alternatively, one can play with the [Jupyter notebook](http://jupyter.org): `SPIRALdemo.ipynb`, that feature the same demo as `SPIRALdemo.py`, but in a more fancy format.
+
+# Status
+So far, only the method that do not rely on external Matlab® libraries (such as `denoise` or `rwt` have been implemented). 

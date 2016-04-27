@@ -45,7 +45,7 @@ if demo == 1:
     rf=scipy.io.loadmat('./demodata/canonicaldata.mat')
     f,y,Aorig = (rf['f'], rf['y'], rf['A']) # A Stored as a sparse matrix
 
-    #  % Setup function handles for computing A and A^T:
+    ## Setup function handles for computing A and A^T:
     AT = lambda x: Aorig.transpose().dot(x)
     A = lambda x: Aorig.dot(x)
     
@@ -77,6 +77,7 @@ if demo == 1:
                                       savesolutionpath=False,
                                       truth=f,
                                       verbose=verbose, savecputime=True)
+    ## Deparse outputs
     fhatSPIRAL = resSPIRAL[0]
     parSPIRAL = resSPIRAL[1]
     iterationsSPIRAL = parSPIRAL['iterations']
