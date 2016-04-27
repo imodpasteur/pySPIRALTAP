@@ -252,8 +252,6 @@ def SPIRALTAP(y, A, tau,
         acceptalphamax=alphamax
 
     ## ==== Check the validity of the inputs
-    print ("WARNING: so far, the validity of the input is not checked", file=sys.stderr)
-
 
     ## NOISETYPE:  For now only two options are available 'Poisson' and 'Gaussian'.
     if not type(noisetype)==str or noisetype.lower() not in ('poisson', 'gaussian'):
@@ -328,6 +326,7 @@ def SPIRALTAP(y, A, tau,
     if truth != []:
         try:
             dummy = truth + AT(y)
+            truth = np.array(truth, dtype='float64') # Convert to float
         except:
             raise TypeError("The size of ''TRUTH'' is incompatible with the given, sensing matrix ''A''.")
         if truth.min() < 0:
@@ -477,23 +476,7 @@ def SPIRALTAP(y, A, tau,
         xinit = xinit - mu # Adjust Initialization
         print ("WARNING: This part of the code has not been debugged", file=sys.stderr)
 
-    ## ==== Check for validity of output parameters (Matlab specific code)
-    # % Check if there are too many or not enough
-    # if (nargout == 0) && warnings
-    #         disp('Warning:  You should reconsider not saving the output!');
-    #         pause(1);
-    # end
-    # if (nargout < (2 + saveobjective + savereconerror ...
-    #         + savecputime + savesolutionpath)) && warnings
-    #     disp(['Warning:  Insufficient output parameters given to save ',...
-    #         'the full output with the given options.']);
-    # end
-    # if nargout > (2 + saveobjective + savereconerror ...
-    #         + savecputime + savesolutionpath)
-    #         error('Too many output arguments specified for the given options.')
-    # end
-
-    ## ==== Prepare for running the algorithm (The below assumes that all parameters above are valid)
+    ## ==== Prepare for running the algorithm (Assumes that all parameters above are valid)
     ## Initialize Main Algorithm
     x = xinit
     Ax = A(x).copy()
@@ -514,7 +497,7 @@ def SPIRALTAP(y, A, tau,
     if savereconerror:
         reconerror = np.zeros((maxiter+1))
         if reconerrortype == 0: # RMS error
-            normtrue = (truth**2).sum()**0.5
+            normtrue = (np.array(truth, dtype='float64')**2).sum()**0.5
             computereconerror = lambda x: ((x+mu-truth)**2).sum()**0.5/normtrue
         elif reconerrortype == 1:
             normtrue = np.abs(truth).sum()
