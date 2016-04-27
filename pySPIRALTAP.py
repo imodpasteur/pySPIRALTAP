@@ -151,9 +151,9 @@ def computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT):
         objective += tau*tlv(x,'l1') ## tlv comes from the toolbox
     return objective
 
-# % =====================================
-# % = Denoising Subproblem Computation: =
-# % =====================================
+## =====================================
+## = Denoising Subproblem Computation: =
+## =====================================
 def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
                        subminiter, submaxiter, substopcriterion, subtolerance):
     """Denoising subproblem computation"""
@@ -219,6 +219,33 @@ def checkconvergence(itern,miniter,stopcriterion,tolerance, dx, x, cputime, obje
             todo()
             
     return converged 
+
+# function P=Ltrans(X)
+# [m,n]=size(X);
+# P{1}=X(1:m-1,:)-X(2:m,:);
+# P{2}=X(:,1:n-1)-X(:,2:n);
+
+def tlv(X,typ):
+    """This function computes the total variation of an input image X
+    This function comes from the 'denoise' toolbox, ie:
+    > We also use the FISTA algorithm of Beck and Teboulle for constrained Total 
+    > Variation denoising.  This toolbox is in the 'denoise' directory and is also
+    > available online:
+    W http://ie.technion.ac.il/~becka/papers/tv_fista.zip
+    """
+    (m,n)=X.shape
+    P1 = X[0:(m-2),:]-X[1:(m-1),:]
+    P2 = X[:,0:(n-2)]-X[:,1:(n-1)]
+
+    if typ=='iso':
+        D = np.zeros((m,n))
+        D[0:(m-2),:]=P1**2
+        D[:,0:(n-2)]=D[:,0:(n-2)]+P2**2
+        return np.sqrt(D).sum()
+    elif typ=='l1':
+        return np.abs(P1).sum()+np.abs(P2).sum()
+    else:
+        raise InputError('Invalid total variation type. Should be either "iso" or "l1"')
 
 # ==== Main functions
 def SPIRALTAP(y, A, tau,
