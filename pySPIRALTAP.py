@@ -358,11 +358,13 @@ def SPIRALTAP(y, A, tau,
     ## Things to check and compute that depend on PENALTY:
     if penalty.lower() == 'canonical':
         pass
-    elif penalty.lower() == 'onb':
+    elif penalty.lower() in ('onb', 'rdp', 'rdp-ti'):
         todo()
-    # switch lower(penalty)
-    #     case 'canonical'
+    elif penalty.lower() == 'tv': ## Cannot have a vectorized tau (yet)
+            if type(tau) != float:
+                raise TypeError('A vector regularization parameter ''TAU'' cannot be used in conjuction with the TV penalty.')
 
+    # switch lower(penalty)
     #     case 'onb' 
     #         % Already checked for valid subminiter, submaxiter, and subtolerance
     #         % Check for valid substopcriterion 
@@ -447,14 +449,6 @@ def SPIRALTAP(y, A, tau,
     #                 'Invalid option ''SAVEOBJECTIVE'' = 1 for ',...
     #                 '''PENALTY'' = ''',penalty,'''.']);
     #         end
-
-    #     case 'tv'
-    #         % Cannot have a vectorized tau (yet)
-    #         if (numel(tau) ~= 1)
-    #             error(['A vector regularization parameter ''TAU'' cannot be ',...
-    #                 'used in conjuction with the TV penalty.']);
-    #         end
-    # end
 
     ## ==== check that initialization is a scalar or a vector
     if initialization == []: ## set initialization
