@@ -609,7 +609,7 @@ def SPIRALTAP(y, A, tau,
 
         ## ==== Display progress
         if verbose > 0 and itern % verbose == 0:
-            txt = 'Itern: {}, ||dx||%%: {}, Alph: {}'.format(itern,
+            txt = 'Iter: {}, ||dx||%%: {}, Alph: {}'.format(itern,
                                                         100*np.linalg.norm(dx)/np.linalg.norm(x),
                                                             alpha)
             ## use of np.linalg.norm could probably be removed
@@ -657,16 +657,20 @@ def SPIRALTAP(y, A, tau,
     ## crop the output if the maximum number of iternations were not used.
     ## Note, need to subtract 1 since itern is incremented at the end of the loop
     itern = itern - 1;
-    varargout = [itern];
+    varargout = {'iterations':itern}
 
     if saveobjective:
-        varargout.append(objective[0:itern]) ## Useless bounds 1:itern+1 ???
+        varargout['objective'] = objective[0:itern]
+        #varargout.append(objective[0:itern]) ## Useless bounds 1:itern+1 ???
     if savereconerror:
-        varargout.append(reconerror[0:itern])
+        varargout['reconerror']=reconerror[0:itern]
+        #varargout.append(reconerror[0:itern])
     if savecputime:
-        varargout.append(cputime[0:itern])
+        varargout['cputime']=cputime[0:itern]
+        #varargout.append(cputime[0:itern])
     if savesolutionpath:
-        varargout.append(solutionpath[0:itern])
+        varargout['solutionpath']=solutionpath[0:itern]
+        #varargout.append(solutionpath[0:itern])
 
     if verbose > 0:
         txt = """
