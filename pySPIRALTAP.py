@@ -234,13 +234,15 @@ def tlv(X,typ):
     W http://ie.technion.ac.il/~becka/papers/tv_fista.zip
     """
     (m,n)=X.shape
-    P1 = X[0:(m-2),:]-X[1:(m-1),:]
-    P2 = X[:,0:(n-2)]-X[:,1:(n-1)]
+    #P1 = X[0:(m-2),:]-X[1:(m-1),:]
+    #P2 = X[:,0:(n-2)]-X[:,1:(n-1)]
+    P1 = X[0:(m-1),:]-X[1:(m),:]
+    P2 = X[:,0:(n-1)]-X[:,1:(n)]
 
     if typ=='iso':
         D = np.zeros((m,n))
-        D[0:(m-2),:]=P1**2
-        D[:,0:(n-2)]=D[:,0:(n-2)]+P2**2
+        D[0:(m-1),:]=P1**2
+        D[:,0:(n-1)]=D[:,0:(n-1)]+P2**2
         return np.sqrt(D).sum()
     elif typ=='l1':
         return np.abs(P1).sum()+np.abs(P2).sum()
