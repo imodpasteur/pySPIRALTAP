@@ -492,7 +492,6 @@ def SPIRALTAP(y, A, tau,
     objective = np.zeros((maxiter+1))
 
     if saveobjective:
-        print("ERROR: this part of the code is not implemented yet", file=sys.stderr)
         objective[itern-1] = computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT)
     if savereconerror:
         reconerror = np.zeros((maxiter+1))
