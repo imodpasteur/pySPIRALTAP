@@ -563,11 +563,10 @@ def SPIRALTAP(y, A, tau,
                 while accept==0:
                     ## Compute the step and perform gaussian denoising subproblem
                     dx = xprevious
-                    step = xprevious - grad/alpha
+                    step = xprevious - np.array(grad/alpha, dtype='float64')
                     x = computesubsolution(step, tau, alpha, penalty, mu, W, WT,
                                            subminiter, submaxiter, substopcriterion, subtolerance)
                     dx = x - dx
-                    print (x.dtype)
                     Adx = Axprevious
                     Ax = A(x).copy()
                     Adx = Ax - Adx
