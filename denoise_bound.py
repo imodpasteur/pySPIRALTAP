@@ -137,7 +137,7 @@ def denoise_bound(Xobs, lam, l, u, pars={}):
         ## Taking a step towards minus of the gradient
         P1 = R1 + 1/(8*lam)*Q1
         P2 = R2 + 1/(8*lam)*Q2
-
+        
         ## Peforming the projection step
         if tv=='iso':
             A = np.vstack((P1, np.zeros((n))))**2 + np.hstack((P2,np.zeros((m,1))))**2
@@ -150,11 +150,11 @@ def denoise_bound(Xobs, lam, l, u, pars={}):
             PP2 = np.abs(P2.copy())
             PP1[PP1<1]=1
             PP2[PP2<1]=1
-            P1 /= PP1.max()
-            P1 /= PP2.max()
+            P1 /= PP1
+            P2 /= PP2
         else:
             raise InputError('unknown type of total variation. should be iso or l1')
-
+        
         ## Updating R and t
         tkp1 = (1+ (1+4*tk**2)**0.5)/2
         R1 = P1+(tk-1)/tkp1 * (P1-Pold1)
