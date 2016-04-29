@@ -11,7 +11,7 @@ Original source: http://drz.ac/code/spiraltap/. The algorithm is described in th
 # Disclaimer
 
 1. *License*: I am unsure about the license of the code
-2. *Code*: still experimental, many methods are not implemented
+2. *Code*: still experimental, many methods have not been fully tested.
 
 # Install
 Install can be performed using the following `shell` commands:
@@ -39,4 +39,4 @@ Alternatively, one can play with the [Jupyter notebook](http://jupyter.org): `SP
 The pySPIRALTAP methods can be imported with `import pySPIRALTAP`.
 
 # Status
-So far, only the method that do not rely on external Matlab® libraries (such as `denoise` or `rwt` have been implemented). 
+The methods relying on the `rwt` method have not been implemented.
