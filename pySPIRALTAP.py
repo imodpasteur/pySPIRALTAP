@@ -220,11 +220,6 @@ def checkconvergence(itern,miniter,stopcriterion,tolerance, dx, x, cputime, obje
             
     return converged 
 
-# function P=Ltrans(X)
-# [m,n]=size(X);
-# P{1}=X(1:m-1,:)-X(2:m,:);
-# P{2}=X(:,1:n-1)-X(:,2:n);
-
 def tlv(X,typ):
     """This function computes the total variation of an input image X
     This function comes from the 'denoise' toolbox, ie:
@@ -234,8 +229,6 @@ def tlv(X,typ):
     W http://ie.technion.ac.il/~becka/papers/tv_fista.zip
     """
     (m,n)=X.shape
-    #P1 = X[0:(m-2),:]-X[1:(m-1),:]
-    #P2 = X[:,0:(n-2)]-X[:,1:(n-1)]
     P1 = X[0:(m-1),:]-X[1:(m),:]
     P2 = X[:,0:(n-1)]-X[:,1:(n)]
 

@@ -32,6 +32,7 @@
 #                                             during the iterations
 
 ## ==== Importations
+from __future__ import print_function
 import numpy as np
 
 ## ==== Helper functions
@@ -118,7 +119,7 @@ def denoise_bound(Xobs, lam, l, u, pars={}):
 #iteration  function-value  relative-difference
 ---------------------------------------------------------------------
 """
-        print txt
+        print (txt)
 
     ## ==== Main loop
     while (i<MAXITER) and (count<5):
