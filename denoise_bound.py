@@ -181,3 +181,4 @@ def denoise_bound(Xobs, lam, l, u, pars={}):
             print ("{}\t{}\t{}".format(i,fval, np.linalg.norm(D-Dold,'fro')/np.linalg.norm(D,'fro')) )
         X_den=D
         iter=1
+    return (X_den,iter,fun_all)
