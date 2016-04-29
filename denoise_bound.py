@@ -122,7 +122,7 @@ def denoise_bound(Xobs, lam, l, u, pars={}):
         fold=fval
         i+=1 ## updating the iteration counter
         Dold = D ## Storing the old value of the current solution
-
+        
         ## Computing the gradient of the objective function
         Pold1=P1
         Pold2=P2
@@ -152,7 +152,7 @@ def denoise_bound(Xobs, lam, l, u, pars={}):
             raise InputError('unknown type of total variation. should be iso or l1')
 
         ## Updating R and t
-        tkp1 = (1+ (1+4*tk**2))/2
+        tkp1 = (1+ (1+4*tk**2)**0.5)/2
         R1 = P1+(tk-1)/tkp1 * (P1-Pold1)
         R2 = P2+(tk-1)/tkp1 * (P2-Pold2)
 
