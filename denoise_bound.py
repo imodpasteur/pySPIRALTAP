@@ -33,6 +33,7 @@
 
 ## ==== Importations
 from __future__ import print_function
+import sys
 import numpy as np
 
 ## ==== Helper functions
@@ -77,7 +78,7 @@ def denoise_bound(Xobs, lam, l, u, pars={}):
         print ("WARNING: projection not very well tested", file=sys.stderr)
         project = lambda x: ((l<x)&(x<u))*x + (x>=u)*u + l*(x<=l)
     else:
-        raise TypeError('lower and upper bound l,u should satisfy l<u')
+        raise TypeError('lower and upper bound l,u should satisfy l<u. Both should be float (not int)')
 
     ## Assigning parameres according to pars and/or default values
     if pars.has_key('MAXITER'):

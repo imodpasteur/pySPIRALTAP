@@ -109,6 +109,7 @@
 # ==== Importations
 from __future__ import print_function
 import sys, time, datetime
+import denoise_bound
 import numpy as np
 
 # ==== Error & helpter functions
@@ -162,6 +163,22 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
         out[out<0]=0
         return out
         return np.max(step - tau/alpha + mu, 0.0) ## previous method
+    elif penalty.lower() == 'tv':
+        pars = {'print':1, 'tv':'l1'}
+#         case 'tv'
+#             subtolerance        = varargin{6};
+#             submaxiter          = varargin{4};
+#             % From Becca's Code:
+#             pars.print = 0;
+#             pars.tv = 'l1';
+#             pars.MAXITER = submaxiter;
+#             pars.epsilon = subtolerance; % Becca used 1e-5;
+#             if tau>0
+#                 subsolution = denoise_bound(step,tau./alpha,-mu,Inf,pars);
+#             else
+#                 subsolution = step.*(step>0);
+#             end        
+        
     else:
         todo() ## Only partially implemented, see below.
 # function subsolution = computesubsolution(step,tau,alpha,penalty,mu,varargin)
@@ -264,10 +281,6 @@ def SPIRALTAP(y, A, tau,
       - x
       - varargout (?)
     """
-    #% Add a path to the denoising methods folder
-    #spiraltapdir = which('SPIRALTAP');
-    #[spiraltapdir dummy] = fileparts(spiraltapdir);
-    #path([spiraltapdir,'/denoise'],path)
     
     ## ==== Input parameters
     if not kwargs.has_key('acceptalphamax'):
