@@ -164,21 +164,11 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
         return out
         return np.max(step - tau/alpha + mu, 0.0) ## previous method
     elif penalty.lower() == 'tv':
-        pars = {'print':1, 'tv':'l1'}
-#         case 'tv'
-#             subtolerance        = varargin{6};
-#             submaxiter          = varargin{4};
-#             % From Becca's Code:
-#             pars.print = 0;
-#             pars.tv = 'l1';
-#             pars.MAXITER = submaxiter;
-#             pars.epsilon = subtolerance; % Becca used 1e-5;
-#             if tau>0
-#                 subsolution = denoise_bound(step,tau./alpha,-mu,Inf,pars);
-#             else
-#                 subsolution = step.*(step>0);
-#             end        
-        
+        pars = {'print':0, 'tv':'l1', 'MAXITER':submaxiter, 'epsilon' : subtolerance}
+        if tau>0:
+            return denoise_bound.denoise_bound(step, tau/alpha, float(-1*mu), np.inf, pars)[0]
+        else:
+            return step*(step>0)        
     else:
         todo() ## Only partially implemented, see below.
 # function subsolution = computesubsolution(step,tau,alpha,penalty,mu,varargin)
