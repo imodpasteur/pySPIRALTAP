@@ -9,3 +9,5 @@
 *.pyc
 \#*
 __MACOSX
+.cache/
+.ipynb_checkpoints/
