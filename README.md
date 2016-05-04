@@ -40,3 +40,6 @@ The pySPIRALTAP methods can be imported with `from pySPIRALTAP import pySPIRALTA
 
 # Status
 The methods relying on the `rwt` method have not been implemented.
+
+# License
+This woftware is released under the MIT license. See the `LICENSE` file for more details.
