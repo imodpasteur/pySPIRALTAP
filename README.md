@@ -42,12 +42,13 @@ The pySPIRALTAP methods can be imported with `from pySPIRALTAP import pySPIRALTA
 Here is a canonical function call with many parameters exposed:
 
 ```{python}
-    resSPIRAL = pySPIRALTAP.SPIRALTAP(y,A,tau=1e-6,
-                                      maxiter=100,
-                                      miniter=5,
-                                      penalty='canonical',
-                                      noisetype='gaussian',
-                                      stopcriterion=3,
+    resSPIRAL = pySPIRALTAP.SPIRALTAP(y,A,              # y: measured signal, A: projection matrix
+		                              1e-6,             # regularization parameter
+                                      maxiter=100,      # min. number of iterations
+                                      miniter=5,        # max. number of iterations
+                                      penalty='canonical', # type of penalty to apply
+                                      noisetype='gaussian',# form of the log-likelihood penalty
+                                      stopcriterion=3,  # index of the termination criterion
                                       tolerance=1e-8,
                                       alphainit=1,
                                       alphamin=1e-30,
