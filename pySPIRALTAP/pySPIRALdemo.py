@@ -59,13 +59,16 @@ if demo == 1:
     # AT(y) rescaled to a least-squares fit to the mean intensity
     finit = y.sum()*AT(y).size/AT(y).sum()/AT(np.ones_like(y)).sum() * AT(y)
 
+    #print (Aorig.shape, y.shape, finit.shape)
+    
     # ==== Run the algorithm:
     ## Demonstrating all the options for our algorithm:
     resSPIRAL = pySPIRALTAP.SPIRALTAP(y,A,tau,
                                       AT=AT,
                                       maxiter=maxiter,
                                       miniter=5,
-                                      penalty='tv',
+                                      penalty='canonical',
+                                      noisetype='gaussian',
                                       initialization=finit,
                                       stopcriterion=3,
                                       tolerance=tolerance,

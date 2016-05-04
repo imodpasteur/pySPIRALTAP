@@ -2,6 +2,7 @@
 /build/
 /dist/
 /pySPIRALTAP.egg-info/
+/dev/
 
 # TMP files
 .#*
