@@ -10,7 +10,6 @@ Original source: http://drz.ac/code/spiraltap/. The algorithm is described in th
 
 # Disclaimer
 
-1. *License*: I am unsure about the license of the code
 2. *Code*: still experimental, many methods have not been fully tested.
 
 # Install
@@ -38,8 +37,31 @@ Alternatively, one can play with the [Jupyter notebook](http://jupyter.org): `SP
 ## Calling from a script
 The pySPIRALTAP methods can be imported with `from pySPIRALTAP import pySPIRALTAP`.
 
+## `SPIRALTAP` function parameters
+
+Here is a canonical function call with many parameters exposed:
+
+```{python}
+    resSPIRAL = pySPIRALTAP.SPIRALTAP(y,A,tau=1e-6,
+                                      maxiter=100,
+                                      miniter=5,
+                                      penalty='canonical',
+                                      noisetype='gaussian',
+                                      stopcriterion=3,
+                                      tolerance=1e-8,
+                                      alphainit=1,
+                                      alphamin=1e-30,
+                                      alphamax=1e30,
+                                      alphaaccept=1e30,
+                                      logepsilon=1e-10,
+                                      saveobjective=True,
+                                      savereconerror=True,
+                                      savesolutionpath=False,
+                                      verbose=verbose, savecputime=True)
+```
+
 # Status
 The methods relying on the `rwt` method have not been implemented.
 
 # License
-This woftware is released under the MIT license. See the `LICENSE` file for more details.
+This software is released under the MIT license. See the `LICENSE` file for more details.
