@@ -66,16 +66,18 @@ def Ltrans(X):
 ## ==== Main functions
 def denoise_bound(Xobs, lam, l, u, pars={}):
     ## Define the Projection onto the box
+    if len(Xobs.shape)!=2:
+        raise ValueError("Xobs must have len(shape)==2")
     if l==-np.inf and u==np.inf:
         project = lambda x: x
     elif type(l)==float and u==np.inf:
-        print ("WARNING: projection not very well tested", file=sys.stderr)
+        #print ("WARNING: projection not very well tested", file=sys.stderr)
         project = lambda x: (l<x)*x + l*(x<=l)
     elif type(u)==float and l==-np.Inf:
-        print ("WARNING: projection not very well tested", file=sys.stderr)
+        #print ("WARNING: projection not very well tested", file=sys.stderr)
         project = lambda x: (x<u)*x + (x>=u)*u
     elif type(u) == float and type(l)==float and l<u:
-        print ("WARNING: projection not very well tested", file=sys.stderr)
+        #print ("WARNING: projection not very well tested", file=sys.stderr)
         project = lambda x: ((l<x)&(x<u))*x + (x>=u)*u + l*(x<=l)
     else:
         raise TypeError('lower and upper bound l,u should satisfy l<u. Both should be float (not int)')
