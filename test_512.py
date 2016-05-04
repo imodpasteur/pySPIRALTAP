@@ -3,6 +3,7 @@
 ## by MW, May 2016
 ##+ some code is copy-pasted from cstools.py
 
+from __future__ import print_function
 import sys
 #sys.path.append('..')
 import pySPIRALTAP
@@ -12,7 +13,7 @@ import numpy as np
 
 ## ==== Test inputs
 
-## ==== Test outputs on 1D stuff (init seed and run 100 of tests).
+## ==== Test outputs on 1D stuff
 def test_matrix_input(m=512, mes=55, n=100, dat=25, seed=0):
     """Test if SPIRAL accepts the right type of parameters. Testing for matrices"""
     # === Generate data
@@ -47,6 +48,58 @@ def test_matrix_input(m=512, mes=55, n=100, dat=25, seed=0):
                                       truth=f,
                                       verbose=verbose, savecputime=False)
     assert rec_l1[0].shape == f.shape
+
+def test_are_we_saveobjective_agnostic():
+    """Test whether the reconstruction is the same unrespective to the 
+    'saveobjective flag'
+    """
+    
+    ## Generate data
+    np.random.seed(42)
+    A = np.genfromtxt('./demodata/fourierbasis.csv') # Measurement matrix
+    f = cstools.generate_1D(512, .95) # Signal
+    y = cstools.measure(f,A)
+
+    rec_save = pySPIRALTAP.SPIRALTAP(y,A,1e-6,
+                                     maxiter=100,
+                                     miniter=5,
+                                     penalty='canonical',
+                                     noisetype='gaussian',
+                                     stopcriterion=3,
+                                     tolerance=1e-8,
+                                     alphainit=1,
+                                     alphamin=1e-30,
+                                     alphamax=1e30,
+                                     alphaaccept=1e30,
+                                     logepsilon=1e-10,
+                                     saveobjective=True,
+                                     savereconerror=False,
+                                     savesolutionpath=False,
+                                     truth=f,
+                                     verbose=0, savecputime=False)[0]
+
+    rec_nosave = pySPIRALTAP.SPIRALTAP(y,A,1e-6,
+                                       maxiter=100,
+                                       miniter=5,
+                                       penalty='canonical',
+                                       noisetype='gaussian',
+                                       stopcriterion=3,
+                                       tolerance=1e-8,
+                                       alphainit=1,
+                                       alphamin=1e-30,
+                                       alphamax=1e30,
+                                       alphaaccept=1e30,
+                                       logepsilon=1e-10,
+                                       saveobjective=False,
+                                       savereconerror=False,
+                                       savesolutionpath=False,
+                                       truth=f,
+                                       verbose=0,savecputime=False)[0]
+
+    er = ((rec_save- rec_nosave)**2).sum()/(rec_save**2).sum()
+    print("L2 error between the two reconstructions : ", er)
+    assert er == 0 
+
     
 def test_canonical_reconstruction(m=512, mes=55, n=100, dat=25, seed=0):
     """Test if the reconstruction is accurate, norm is l2 norm
@@ -143,3 +196,6 @@ def run_spiral(y,Ao,f,finit=None, penalty='canonical'):
                                       savesolutionpath=False,
                                       truth=f,
                                       verbose=verbose, savecputime=False)[0]
+
+if __name__=='__main__':
+    test_are_we_saveobjective_agnostic()
