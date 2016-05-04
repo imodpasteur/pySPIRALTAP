@@ -66,3 +66,4 @@ The methods relying on the `rwt` method have not been implemented.
 
 # License
 This software is released under the MIT license. See the `LICENSE` file for more details.
+The `denoise_bound` code is released under the GNU GPLv2 license and was written by Copyright (2008): Amir Beck and Marc Teboulle.
