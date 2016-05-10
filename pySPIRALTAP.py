@@ -162,7 +162,6 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
         out = step - tau/alpha + mu
         out[out<0]=0
         return out
-        return np.max(step - tau/alpha + mu, 0.0) ## previous method
     elif penalty.lower() == 'tv':
         pars = {'print':0, 'tv':'l1', 'MAXITER':submaxiter, 'epsilon' : subtolerance}
         if tau>0:
@@ -497,13 +496,12 @@ def SPIRALTAP(y, A, tau,
         A = lambda x: A(x) - meanAones*x.sum()/xinit.size
         AT = lambda x: AT(x) - meanAones*x.sum()/xinit.size
         xinit = xinit - mu # Adjust Initialization
-        print ("WARNING: This part of the code has not been debugged", file=sys.stderr)
 
     ## ==== Prepare for running the algorithm (Assumes that all parameters above are valid)
     ## Initialize Main Algorithm
     x = xinit
     Ax = A(x).copy()
-    alpha = alphainit
+    alpha = alphainit 
     Axprevious = Ax
     xprevious = x
     grad = computegrad(y, Ax, AT, noisetype, logepsilon)
@@ -525,7 +523,7 @@ def SPIRALTAP(y, A, tau,
             computereconerror = lambda x: np.abs(x+mu-truth).sum()/normtrue
         reconerror[itern-1] = computereconerror(xinit)
     if savesolutionpath:
-        pass
+        todo()
         #     % Note solutionpath(1).step will always be zeros since having an 
         #     % 'initial' step does not make sense
         #     solutionpath(1:maxiter+1) = struct('step',zeros(size(xinit)),...
@@ -568,8 +566,9 @@ def SPIRALTAP(y, A, tau,
                     ## Compute the step and perform gaussian denoising subproblem
                     dx = xprevious
                     step = xprevious - np.array(grad/alpha, dtype='float64')
+                    x = x.reshape((-1,1))
                     x = computesubsolution(step, tau, alpha, penalty, mu, W, WT,
-                                           subminiter, submaxiter, substopcriterion, subtolerance).reshape(-1)
+                                           subminiter, submaxiter, substopcriterion, subtolerance).reshape((-1,1))
                     dx = x - dx
                     Adx = Axprevious
                     Ax = A(x).copy()
@@ -602,9 +601,10 @@ def SPIRALTAP(y, A, tau,
             reconerror[itern] = computereconerror(x)
         if savesolutionpath:
             print("ERROR: this option is not implemented 'savesolutionpath'", file=sys.stderr)
-            solutionpath(itern).step = step
-            solutionpath(itern).iterate = x
+            #solutionpath(itern).step = step
+            #solutionpath(itern).iterate = x
         ## Needed for next iternation and also termination criternia
+        Ax=Ax.reshape((-1,1)) # Reshape before computing gradient
         grad = computegrad(y,Ax,AT,noisetype,logepsilon)
         converged = checkconvergence(itern,miniter,stopcriterion,tolerance,
                                      dx, x, cputime[itern], objective)
