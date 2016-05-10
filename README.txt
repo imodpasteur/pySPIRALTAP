@@ -10,7 +10,6 @@ Original source: http://drz.ac/code/spiraltap/. The algorithm is described in th
 
 # Disclaimer
 
-1. *License*: I am unsure about the license of the code
 2. *Code*: still experimental, many methods have not been fully tested.
 
 # Install
@@ -36,7 +35,35 @@ This file contains one demo where a 1D signal is reconstructed using a $l1$ pena
 Alternatively, one can play with the [Jupyter notebook](http://jupyter.org): `SPIRALdemo.ipynb`, that feature the same demo as `SPIRALdemo.py`, but in a more fancy format.
 
 ## Calling from a script
-The pySPIRALTAP methods can be imported with `from pySPIRALTAP import pySPIRALTAP`.
+The pySPIRALTAP methods can be imported with `import pySPIRALTAP`.
+
+## `SPIRALTAP` function parameters
+
+Here is a canonical function call with many parameters exposed:
+
+```{python}
+    resSPIRAL = pySPIRALTAP.SPIRALTAP(y,A,              # y: measured signal, A: projection matrix
+		                              1e-6,             # regularization parameter
+                                      maxiter=100,      # min. number of iterations
+                                      miniter=5,        # max. number of iterations
+                                      penalty='canonical', # type of penalty to apply
+                                      noisetype='gaussian',# form of the log-likelihood penalty
+                                      stopcriterion=3,  # index of the termination criterion
+                                      tolerance=1e-8,
+                                      alphainit=1,
+                                      alphamin=1e-30,
+                                      alphamax=1e30,
+                                      alphaaccept=1e30,
+                                      logepsilon=1e-10,
+                                      saveobjective=True,
+                                      savereconerror=True,
+                                      savesolutionpath=False,
+                                      verbose=verbose, savecputime=True)
+```
 
 # Status
 The methods relying on the `rwt` method have not been implemented.
+
+# License
+This software is released under the MIT license. See the `LICENSE` file for more details.
+The `denoise_bound` code is released under the GNU GPLv2 license and was written by Copyright (2008): Amir Beck and Marc Teboulle.

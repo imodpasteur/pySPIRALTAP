@@ -35,7 +35,7 @@ This file contains one demo where a 1D signal is reconstructed using a $l1$ pena
 Alternatively, one can play with the [Jupyter notebook](http://jupyter.org): `SPIRALdemo.ipynb`, that feature the same demo as `SPIRALdemo.py`, but in a more fancy format.
 
 ## Calling from a script
-The pySPIRALTAP methods can be imported with `from pySPIRALTAP import pySPIRALTAP`.
+The pySPIRALTAP methods can be imported with `import pySPIRALTAP`.
 
 ## `SPIRALTAP` function parameters
 
