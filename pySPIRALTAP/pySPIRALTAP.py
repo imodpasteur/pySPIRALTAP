@@ -166,7 +166,10 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
     elif penalty.lower() == 'tv':
         pars = {'print':0, 'tv':'l1', 'MAXITER':submaxiter, 'epsilon' : subtolerance}
         if tau>0:
-            return denoise_bound.denoise_bound(step, tau/alpha, float(-1*mu), np.inf, pars)[0]
+            return denoise_bound.denoise_bound(step.reshape((step.shape[0],-1)),
+                                               tau/alpha,
+                                               float(-1*mu), np.inf,
+                                               pars)[0]
         else:
             return step*(step>0)        
     else:
@@ -273,7 +276,8 @@ def SPIRALTAP(y, A, tau,
     """
     
     ## ==== Input parameters
-    if not kwargs.has_key('acceptalphamax'):
+    #if not kwargs.has_key('acceptalphamax'):
+    if not 'acceptalphamax' in kwargs:
         acceptalphamax=alphamax
 
     ## ==== Check the validity of the inputs
@@ -281,7 +285,7 @@ def SPIRALTAP(y, A, tau,
     ## NOISETYPE:  For now only two options are available 'Poisson' and 'Gaussian'.
     if not type(noisetype)==str or noisetype.lower() not in ('poisson', 'gaussian'):
         raise TypeError("ERROR (Invalid setting): 'noisetype'={}. 'noisetype' must be either 'Gaussian' or 'Poisson'".format(noisetype))
-
+    
     ## PENALTY:  The implemented penalty options are 'Canonical, 'ONB', 'RDP', 'RDP-TI','TV'.
     if not type(penalty)==str or penalty.lower() not in ('canonical','onb','rdp','rdp-ti','tv'):
         raise TypeError("Invalid setting ''PENALTY'' = {}. The parameter ''PENALTY'' may only be ''Canonical'', ''ONB'', ''RDP'', ''RDP-TI'', or ''TV''.".format(penalty))
@@ -503,7 +507,6 @@ def SPIRALTAP(y, A, tau,
     Axprevious = Ax
     xprevious = x
     grad = computegrad(y, Ax, AT, noisetype, logepsilon)
-
     ## Prealocate arrays for storing results
     # Initialize cputime and objective empty anyway (avoids errors in subfunctions):
     #cputime = []
@@ -566,13 +569,12 @@ def SPIRALTAP(y, A, tau,
                     dx = xprevious
                     step = xprevious - np.array(grad/alpha, dtype='float64')
                     x = computesubsolution(step, tau, alpha, penalty, mu, W, WT,
-                                           subminiter, submaxiter, substopcriterion, subtolerance)
+                                           subminiter, submaxiter, substopcriterion, subtolerance).reshape(-1)
                     dx = x - dx
                     Adx = Axprevious
                     Ax = A(x).copy()
                     Adx = Ax - Adx
                     normsqdx = (dx**2).sum()
-
                     ## Compute the resulting objective
                     objective[itern] = computeobjective(x,y,Ax,tau,
                                                         noisetype,logepsilon,penalty,WT)
@@ -602,7 +604,6 @@ def SPIRALTAP(y, A, tau,
             print("ERROR: this option is not implemented 'savesolutionpath'", file=sys.stderr)
             solutionpath(itern).step = step
             solutionpath(itern).iterate = x
-
         ## Needed for next iternation and also termination criternia
         grad = computegrad(y,Ax,AT,noisetype,logepsilon)
         converged = checkconvergence(itern,miniter,stopcriterion,tolerance,

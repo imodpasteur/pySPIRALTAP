@@ -276,7 +276,8 @@ def SPIRALTAP(y, A, tau,
     """
     
     ## ==== Input parameters
-    if not kwargs.has_key('acceptalphamax'):
+    #if not kwargs.has_key('acceptalphamax'):
+    if not 'acceptalphamax' in kwargs:
         acceptalphamax=alphamax
 
     ## ==== Check the validity of the inputs
