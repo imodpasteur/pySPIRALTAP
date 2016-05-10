@@ -15,39 +15,19 @@ import numpy as np
 
 ## ==== Test outputs on 1D stuff
 def test_matrix_input(m=512, mes=55, n=100, dat=25, seed=0):
-    """Test if SPIRAL accepts the right type of parameters. Testing for matrices"""
+    """Test if SPIRAL accepts the right type of parameters. 
+    Testing for matrices and dimensions conservation"""
+    
     # === Generate data
     f = cstools.generate_1D(m, n/float(m)) # Signal
     A = cstools.generate_fourier_basis(m, mes)
     y = cstools.measure(f,A)
-    finit = y.sum()*A.T.dot(y).size/A.T.dot(y).sum()/A.T.dot(np.ones_like(y)).sum() * A.T.dot(y)
-
-    # ==== Set regularization parameters and iteration limit:
-    tau   = 1e-6
-    maxiter = 100
-    tolerance = 1e-8
-    verbose = 0
     
-    rec_l1 = pySPIRALTAP.SPIRALTAP(y,A,tau,
-                                      AT=A.T,
-                                      maxiter=maxiter,
-                                      miniter=5,
-                                      penalty='canonical',
-                                      noisetype='gaussian',
-                                      initialization=finit,
-                                      stopcriterion=3,
-                                      tolerance=tolerance,
-                                      alphainit=1,
-                                      alphamin=1e-30,
-                                      alphamax=1e30,
-                                      alphaaccept=1e30,
-                                      logepsilon=1e-10,
-                                      saveobjective=True,
-                                      savereconerror=False,
-                                      savesolutionpath=False,
-                                      truth=f,
-                                      verbose=verbose, savecputime=False)
-    assert rec_l1[0].shape == f.shape
+    rec_l1 = run_spiral(y,A,f)
+    assert rec_l1.shape == f.shape
+    rec_l1b = run_spiral(y.reshape((-1,1)),A,f)
+    assert rec_l1b.shape == (f.shape[0], 1)
+    assert np.all(rec_l1 == rec_l1b.reshape(-1))
 
 def test_are_we_saveobjective_agnostic():
     """Test whether the reconstruction is the same unrespective to the 
