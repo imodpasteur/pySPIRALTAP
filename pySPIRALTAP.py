@@ -165,10 +165,11 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
     elif penalty.lower() == 'tv':
         pars = {'print':0, 'tv':'l1', 'MAXITER':submaxiter, 'epsilon' : subtolerance}
         if tau>0:
-            return denoise_bound.denoise_bound(step.reshape((step.shape[0],-1)),
-                                               tau/alpha,
-                                               float(-1*mu), np.inf,
-                                               pars)[0]
+            out = denoise_bound.denoise_bound(step.reshape((step.shape[0],-1)),
+                                              tau/alpha,
+                                              float(-1*mu), np.inf,
+                                              pars)[0]
+            return out
         else:
             return step*(step>0)        
     else:
@@ -513,6 +514,8 @@ def SPIRALTAP(y, A, tau,
 
     if saveobjective:
         objective[itern-1] = computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT)
+    else:
+        objective[itern-1] = computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT) # this must be initialized anyway
     if savereconerror:
         reconerror = np.zeros((maxiter+1))
         if reconerrortype == 0: # RMS error
@@ -565,10 +568,10 @@ def SPIRALTAP(y, A, tau,
                 while accept==0:
                     ## Compute the step and perform gaussian denoising subproblem
                     dx = xprevious
-                    step = xprevious - np.array(grad/alpha, dtype='float64')
-                    x = x.reshape((-1,1))
+                    step = xprevious - np.array(grad/alpha, dtype='float64').reshape(xprevious.shape)
+                    #x = x.reshape((-1,1))
                     x = computesubsolution(step, tau, alpha, penalty, mu, W, WT,
-                                           subminiter, submaxiter, substopcriterion, subtolerance).reshape((-1,1))
+                                           subminiter, submaxiter, substopcriterion, subtolerance).reshape(x.shape)
                     dx = x - dx
                     Adx = Axprevious
                     Ax = A(x).copy()
@@ -604,7 +607,7 @@ def SPIRALTAP(y, A, tau,
             #solutionpath(itern).step = step
             #solutionpath(itern).iterate = x
         ## Needed for next iternation and also termination criternia
-        Ax=Ax.reshape((-1,1)) # Reshape before computing gradient
+        Ax=Ax#.reshape((-1,1)) # Reshape before computing gradient
         grad = computegrad(y,Ax,AT,noisetype,logepsilon)
         converged = checkconvergence(itern,miniter,stopcriterion,tolerance,
                                      dx, x, cputime[itern], objective)

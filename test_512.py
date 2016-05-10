@@ -198,4 +198,7 @@ def run_spiral(y,Ao,f,finit=None, penalty='canonical'):
                                       verbose=verbose, savecputime=False)[0]
 
 if __name__=='__main__':
+    #test_matrix_input()
     test_are_we_saveobjective_agnostic()
+    #test_canonical_reconstruction()
+    #test_tv_reconstruction()

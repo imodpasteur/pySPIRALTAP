@@ -35,7 +35,6 @@
 from __future__ import print_function
 import sys
 import numpy as np
-
 ## ==== Helper functions
 def Lforward(P1, P2):
     (m2,n2) = P1.shape
@@ -68,6 +67,8 @@ def denoise_bound(Xobs, lam, l, u, pars={}):
     ## Define the Projection onto the box
     if len(Xobs.shape)!=2:
         raise ValueError("Xobs must have len(shape)==2")
+    else:
+        (m,n)=Xobs.shape
     if l==-np.inf and u==np.inf:
         project = lambda x: x
     elif type(l)==float and u==np.inf:
@@ -101,7 +102,6 @@ def denoise_bound(Xobs, lam, l, u, pars={}):
         tv = 'iso'
 
     ## Initialize objects
-    (m,n)=Xobs.shape
     P1 = np.zeros((m-1,n))
     P2 = np.zeros((m,n-1))
     R1 = np.zeros((m-1,n))
