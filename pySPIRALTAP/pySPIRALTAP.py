@@ -185,12 +185,12 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
             return out
         else:
             return step*(step>0)        
-    else:
+    elif penalty.lower == 'onb' : ## Signal not sparse in the direct basis.
         todo() ## Only partially implemented, see below.
+    else:
+        todo()
 # function subsolution = computesubsolution(step,tau,alpha,penalty,mu,varargin)
 #     switch lower(penalty)
-#         case 'canonical'
-#             subsolution = max(step - tau./alpha + mu, 0.0);
 #         case 'onb'
 #             % if onb is selected, varargin must be such that
 #             W                   = varargin{1};
@@ -206,19 +206,6 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
 #             subsolution = haarTVApprox2DNN_recentered(step,tau./alpha,-mu);
 #         case 'rdp-ti'
 #             subsolution = haarTIApprox2DNN_recentered(step,tau./alpha,-mu);
-#         case 'tv'
-#             subtolerance        = varargin{6};
-#             submaxiter          = varargin{4};
-#             % From Becca's Code:
-#             pars.print = 0;
-#             pars.tv = 'l1';
-#             pars.MAXITER = submaxiter;
-#             pars.epsilon = subtolerance; % Becca used 1e-5;
-#             if tau>0
-#                 subsolution = denoise_bound(step,tau./alpha,-mu,Inf,pars);
-#             else
-#                 subsolution = step.*(step>0);
-#             end
 #     end           
 # end
 
@@ -383,63 +370,59 @@ def SPIRALTAP(y, A, tau,
     ## Things to check and compute that depend on PENALTY:
     if penalty.lower() == 'canonical':
         pass
-    elif penalty.lower() in ('onb', 'rdp', 'rdp-ti'):
+    elif penalty.lower() in ('rdp', 'rdp-ti'):
         todo()
     elif penalty.lower() == 'tv': ## Cannot have a vectorized tau (yet)
             if type(tau) != float:
                 raise TypeError('A vector regularization parameter ''TAU'' cannot be used in conjuction with the TV penalty.')
+    elif penalty.lower() == 'onb': ## There is a sparsifying basis
+        ## Already checked for valid subminiter, submaxiter, and subtolerance
+        ## Check for valid substopcriterion
+        ## Need to check for the presense of W and WT
+        ## Further checks to ensure we have both W and WT defined and that
+        ## the sizes are compatable by checking if y + A(WT(W(AT(y)))) can
+        ## be computed
+        
+        check_input(W != [], 'W', "provided as a method to compute W*x matrix-vector products.", 'W')
+        if hasattr(W, '__call__'): # W is a function call
+            check_input(WT != [], 'WT', "provided as a method to compute W*x matrix-vector products.", 'WT') ## Fail if WT is not specified and W is a function call
+            if hasattr(WT, '__call__'): # WT is a function call
+                try: 
+                    dummy = y + A(WT(W(AT(y))))
+                except:
+                    raise TypeError("Size incompatability between ''W'' and ''WT''.")
+            else: ## W is a function call, WT is a matrix
+                try: 
+                    dummy = y + A(WT*W(AT(y)))
+                except:
+                    raise TypeError("Size incompatability between ''W'' and ''WT''.")
+                WTorig = WT.copy()
+                WT = lambda x: WTorig.dot(x)
+        else: ## W is a matrix
+            if WT==[]: ## W is a matrix, and WT not provided.
+                Worig = W.copy()
+                ## /!\ Are we sure we are really defining AT and not WT?
+                AT = lambda x: Worig.T.dot(x) # Just define function calls.
+                A = lambda x: Worig.dot(x)
+            else: # W is a matrix, and WT provided, we need to check
+                if hasattr(WT, '__call__'): ## WT is a function call
+                    try:
+                        dummy = y + A(WT(W.dot(AT(y))))
+                    except:
+                        raise TypeError("Size incompatability between ''W'' and ''WT''.")
+                    Worig = W.copy()
+                    W = lambda x: Worig.dot(x) ## Define W as a function call
+                else: # W and WT are matrices
+                    try:
+                        dummy = y + A(WT(W.dot(AT(y))))
+                    except:
+                        raise TypeError("Size incompatability between ''W'' and ''WT''.")
+                    Worig = W.copy()
+                    WT = lambda x: Worig.T.dot(x) ## Define W and WT as function calls
+                    W  = lambda x: Worig.dot(x)
 
-    # switch lower(penalty)
-    #     case 'onb' 
-    #         % Already checked for valid subminiter, submaxiter, and subtolerance
-    #         % Check for valid substopcriterion 
-    #         % Need to check for the presense of W and WT
-    #         if isempty(W)
-    #             error(['Parameter ''W'' not specified.  Please provide a ',...
-    #                 'method to compute W*x matrix-vector products.'])
-    #         end
-    #         % Further checks to ensure we have both W and WT defined and that
-    #         % the sizes are compatable by checking if y + A(WT(W(AT(y)))) can
-    #         % be computed
-    #         if isa(W, 'function_handle') % W is a function call, so WT is required
-    #             if isempty(WT) % WT simply not provided
-    #                 error(['Parameter ''WT'' not specified.  Please provide a ',...
-    #                     'method to compute W''*x matrix-vector products.'])
-    #             else % WT was provided
-    #         if isa(WT, 'function_handle') % W and WT are function calls
-    #             try dummy = y + A(WT(W(AT(y))));
-    #             catch exception; 
-    #                 error('Size incompatability between ''W'' and ''WT''.')
-    #             end
-    #         else % W is a function call, WT is a matrix        
-    #             try dummy = y + A(WT*W(AT(y)));
-    #             catch exception
-    #                 error('Size incompatability between ''W'' and ''WT''.')
-    #             end
-    #             WT = @(x) WT*x; % Define WT as a function call
-    #         end
-    #     end
-    # else
-    #     if isempty(WT) % W is a matrix, and WT not provided.
-    #         AT = @(x) W'*x; % Just define function calls.
-    #         A = @(x) W*x;
-    #     else % W is a matrix, and WT provided, we need to check
-    #         if isa(WT, 'function_handle') % W is a matrix, WT is a function call            
-    #             try dummy = y + A(WT(W*AT(y)));
-    #             catch exception
-    #                 error('Size incompatability between ''W'' and ''WT''.')
-    #             end
-    #             W = @(x) W*x; % Define W as a function call
-    #         else % W and WT are matrices
-    #             try dummy = y + A(WT(W*(AT(y))));
-    #             catch exception
-    #                 error('Size incompatability between ''W'' and ''WT''.')
-    #             end
-    #             WT = @(x) WT*x; % Define A and AT as function calls
-    #             W = @(x) W*x;
-    #         end
-    #     end
-    # end
+    else:
+        todo()
     # 	case 'rdp'
     #         %todo
     #         % Cannot enforce monotonicity (yet)
