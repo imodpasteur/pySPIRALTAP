@@ -141,7 +141,7 @@ def test_tv_reconstruction(m=512, mes=55, n=100, dat=25, seed=0):
             print(np.where(f!=0))
         assert (er- er_ref) < 1e-6 # Test quadratic error
 
-def test_onb_reconstruction(m=512, mes=55, n=100, dat=25, seed=0):
+def test_onb_reconstruction_nowt(m=512, mes=55, n=100, dat=25, seed=0):
     """Check if the algorithm can proceed with the `onb` penalty
 
     Inputs:
@@ -166,14 +166,35 @@ def test_onb_reconstruction(m=512, mes=55, n=100, dat=25, seed=0):
         W = np.eye(A.shape[1])
         
         rec_l1 = run_spiral(y,A,f, penalty='onb', W=W)
-        assert rec_l1.shape == f.shape
-        er = ((rec_l1-f)**2).sum()/(f**2).sum()
-        if (er-er_ref) > 1e-8:
-            print(np.where(f!=0))
-        assert (er- er_ref) < 1e-6 # Test quadratic error
 
-    
-def run_spiral(y,Ao,f,finit=None, penalty='canonical', W=[]):
+def test_onb_reconstruction_wt(m=512, mes=55, n=100, dat=25, seed=0):
+    """Check if the algorithm can proceed with the `onb` penalty
+
+    Inputs:
+    - m (int) : size of the vector to generate
+    - mes (int) : number of measurements
+    - n (int) : number of replicates to run
+    - dat (int) : number of non-zero components
+    """
+        
+    ## Initialize 
+    A = np.genfromtxt('./demodata/fourierbasis.csv') ## Measurement matrix
+    np.random.seed(42) # Allow for reproducible tests
+    refs = [0, 0, 0,
+            0, 0, 0,
+            0, 0, 0,
+            0, 0, 0] # maSPIRALTAP outputs
+
+    for er_ref in refs:
+        ## Generate data
+        f = cstools.generate_1D(m, 1-dat/float(m)) # Signal
+        y = cstools.measure(f,A)
+        W = np.eye(A.shape[1])
+        
+        rec_l1 = run_spiral(y,A,f, penalty='onb', W=W, WT=W)
+
+        
+def run_spiral(y,Ao,f,finit=None, penalty='canonical', W=[], WT=[]):
     """Simple wrapper for SPIRAL function. All the parameters are preset."""
     ## Set regularization parameters and iteration limit:
     tau   = 1e-6
@@ -191,6 +212,7 @@ def run_spiral(y,Ao,f,finit=None, penalty='canonical', W=[]):
     return pySPIRALTAP.SPIRALTAP(y,A,tau,
                                  AT=AT,
                                  W=W,
+                                 WT=WT,
                                  maxiter=maxiter,
                                  miniter=5,
                                  penalty=penalty,
@@ -211,6 +233,7 @@ def run_spiral(y,Ao,f,finit=None, penalty='canonical', W=[]):
 
 if __name__=='__main__':
     #test_matrix_input()
-    test_are_we_saveobjective_agnostic()
+    #test_are_we_saveobjective_agnostic()
     #test_canonical_reconstruction()
     #test_tv_reconstruction()
+    test_onb_reconstruction_wt()
