@@ -112,13 +112,26 @@ import sys, time, datetime
 import denoise_bound
 import numpy as np
 
-# ==== Error & helpter functions
+# ==== Error & helper functions
 def todo():
     """Not implemented error function"""
     print('ERROR: This function is not yet implemented, please be patient!', file=sys.stderr)
     raise NotImplementedError
 
-## TODO: write stopif function
+def check_input(expr, inp, chk, varname):
+    """Simple wrapper to test the validity of an input
+    
+    Arguments:
+    - expr: the assessed expression (must be TRUE or FALSE)
+    - inp: the input value. It should have a way to be converted to a `str`.
+    - varname (str): the name of the input variable
+    - chk (str): a human-readable string of acceptable(s) inputs
+
+    Returns: None
+    """
+    if not expr:
+        raise TypeError("ERROR (Invalid setting): '{}'={}. '{}' must be {}".format(varname, inp, varname, chk))
+
     
 def computegrad(y, Ax, AT, noisetype, logepsilon):
     """Compute the gradient"""
@@ -127,7 +140,7 @@ def computegrad(y, Ax, AT, noisetype, logepsilon):
     elif noisetype.lower() == 'gaussian':
         return AT(Ax - y)
     else:
-        print ("ERROR: undefined 'noisetype' in computegrad", file=sys.stderr)
+        raise TypeError("ERROR: undefined 'noisetype' in computegrad")
 
 def computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT):
     """Compute the objective function"""
@@ -172,12 +185,12 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
             return out
         else:
             return step*(step>0)        
-    else:
+    elif penalty.lower == 'onb' : ## Signal not sparse in the direct basis.
         todo() ## Only partially implemented, see below.
+    else:
+        todo()
 # function subsolution = computesubsolution(step,tau,alpha,penalty,mu,varargin)
 #     switch lower(penalty)
-#         case 'canonical'
-#             subsolution = max(step - tau./alpha + mu, 0.0);
 #         case 'onb'
 #             % if onb is selected, varargin must be such that
 #             W                   = varargin{1};
@@ -193,19 +206,6 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
 #             subsolution = haarTVApprox2DNN_recentered(step,tau./alpha,-mu);
 #         case 'rdp-ti'
 #             subsolution = haarTIApprox2DNN_recentered(step,tau./alpha,-mu);
-#         case 'tv'
-#             subtolerance        = varargin{6};
-#             submaxiter          = varargin{4};
-#             % From Becca's Code:
-#             pars.print = 0;
-#             pars.tv = 'l1';
-#             pars.MAXITER = submaxiter;
-#             pars.epsilon = subtolerance; % Becca used 1e-5;
-#             if tau>0
-#                 subsolution = denoise_bound(step,tau./alpha,-mu,Inf,pars);
-#             else
-#                 subsolution = step.*(step>0);
-#             end
 #     end           
 # end
 
@@ -272,49 +272,39 @@ def SPIRALTAP(y, A, tau,
 
     Returns: 
       - x
-      - varargout (?)
+      - varargout ## Please document how it should work.
     """
     
     ## ==== Input parameters
-    #if not kwargs.has_key('acceptalphamax'):
-    if not 'acceptalphamax' in kwargs:
+    if not 'acceptalphamax' in kwargs: ## Python3 compatible expression.
         acceptalphamax=alphamax
 
     ## ==== Check the validity of the inputs
-
+    
     ## NOISETYPE:  For now only two options are available 'Poisson' and 'Gaussian'.
-    if not type(noisetype)==str or noisetype.lower() not in ('poisson', 'gaussian'):
-        raise TypeError("ERROR (Invalid setting): 'noisetype'={}. 'noisetype' must be either 'Gaussian' or 'Poisson'".format(noisetype))
+    check_input(type(noisetype)==str and noisetype.lower() in ('poisson', 'gaussian'),
+                noisetype, "either 'Gaussian' or 'Poisson'", 'noisetype')
 
     ## PENALTY:  The implemented penalty options are 'Canonical, 'ONB', 'RDP', 'RDP-TI','TV'.
-    if not type(penalty)==str or penalty.lower() not in ('canonical','onb','rdp','rdp-ti','tv'):
-        raise TypeError("Invalid setting ''PENALTY'' = {}. The parameter ''PENALTY'' may only be ''Canonical'', ''ONB'', ''RDP'', ''RDP-TI'', or ''TV''.".format(penalty))
-
-    ## VERBOSE:  Needs to be a nonnegative integer.
-    if type(verbose) != int or verbose<0:
-        raise TypeError("The parameter ''VERBOSE'' is required to be a nonnegative integer.  The setting ''VERBOSE'' = {} is invalid".format(verbose))
+    check_input(type(penalty)==str and penalty.lower() in ('canonical','onb','rdp','rdp-ti','tv'), penalty, "only 'Canonical', 'ONB', 'RDP', 'RDP-TI', or 'TV'", 'penalty')
     
+    ## VERBOSE:  Needs to be a nonnegative integer.
+    check_input(type(verbose) == int and verbose >= 0, verbose, "a nonnegative integer", 'verbose')
+
     ## LOGEPSILON:  Needs to be nonnegative, usually small but that's relative.
-    if logepsilon < 0:
-        raise TypeError("The parameter ''LOGEPSILON'' is required to be a nonnegative integer.  The setting ''LOGEPSILON'' = {} is invalid".format(logepsilon))
+    check_input(logepsilon >= 0, logepsilon, "a nonnegative integer", 'logepsilon')
 
     ## TOLERANCE:  Needs to be nonnegative, usually small but that's relative.
-    if tolerance <0:
-        raise TypeError("The parameter ''TOLERANCE'' is required to be a nonnegative integer.  The setting ''TOLERANCE'' = {} is invalid".format(tolerance))
+    check_input(tolerance >= 0, tolerance, "a nonnegative integer", 'tolerance')
 
     ## SUBTOLERANCE:  Needs to be nonnegative, usually small but that's relative.
-    if subtolerance <0:
-        raise TypeError("The parameter ''SUBTOLERANCE'' is required to be a nonnegative integer.  The setting ''SUBTOLERANCE'' = {} is invalid".format(subtolerance))
+    check_input(subtolerance >= 0, subtolerance, "a nonnegative integer", 'subtolerance')
 
     ## MINITER and MAXITER:  Need to check that they are nonnegative integers and
     ## that miniter <= maxiter todo
-    if miniter <= 0 or maxiter <= 0:
-        raise TypeError("The numbers of iternations ''MINITER'' = {} and ''MAXITER'' = {} should be non-negative.".format(miniter, maxiter))
-    if miniter > maxiter:
-        raise TypeError("The minimum number of iternations ''MINITER'' = {} exceeds the maximum number of iternations ''MAXITER'' = {}.".format(miniter, maxiter))
-
-    if subminiter > submaxiter:
-         raise TypeError("The minimum number of subproblem iternations ''SUBMINITER'' = {} exceeds the maximum number of subproblem iternations ''SUBMAXITER'' = {}".format(subminiter, subbmaxiter))
+    check_input(miniter>0 and maxiter>0, (miniter, maxiter), "positive integers", "('MINITER', 'MAXITER')")
+    check_input(miniter <= maxiter, (miniter, maxiter), "like 'MINITER'<='MAXITER'", "('MINITER', 'MAXITER')")
+    check_input(subminiter <= submaxiter, (subminiter, submaxiter), "like 'SUBMINITER'<='SUBMAXITER'", "('MINITER', 'MAXITER')")
 
     # Matrix dimensions
     # AT:  If A is a matrix, AT is not required, but may optionally be provided.
@@ -360,18 +350,11 @@ def SPIRALTAP(y, A, tau,
             raise TypeError("The size of ''TRUTH'' is incompatible with the given, sensing matrix ''A''.")
         if truth.min() < 0:
             raise ValueError("The size of ''TRUTH'' is incompatable with the given sensing matrix ''A''.")
-
-    if not type(saveobjective)==bool:
-        raise TypeError("The option to save the objective evolution 'saveobjective' must be a boolean, True or False")
-    if not type(savereconerror)==bool:
-        raise TypeError("The option to save the reconstruction error 'savereconerror' must be a boolean, True or False")
-    if (savesolutionpath and truth==[]) or (savereconerror and truth==[]):
-        raise TypeError("The option to save the reconstruction error ''SAVERECONERROR'' can only be used if the true signal ''TRUTH'' is provided.")
-    if not type(savecputime)==bool:
-        print (savecputime)
-        raise TypeError("The option to save the computation time 'cputime' must be a boolean, True or False")
-    if not type(savesolutionpath)==bool:
-        raise TypeError("The option to save the computation time 'savesolutionpath' must be a boolean, True or False")
+    check_input(type(saveobjective)==bool, saveobjective, "a boolean (True or False)", 'saveobjective')
+    check_input(type(savereconerror)==bool, savereconerror, "a boolean (True or False)", 'savereconerror')
+    check_input(not ((savesolutionpath and truth==[]) or (savereconerror and truth==[])), '', "The option to save the reconstruction error ''SAVERECONERROR'' can only be used if the true signal ''TRUTH'' is provided.", 'savereconerror')
+    check_input(type(savecputime)==bool, savecputime, "a boolean (True or False)", 'savecputime')
+    check_input(type(savesolutionpath)==bool, savesolutionpath, "a boolean (True or False)", 'savecputime')
     
     ## ==== Initialize method-dependent parameters
     ## Things to check and compute that depend on NOISETYPE:
@@ -387,63 +370,59 @@ def SPIRALTAP(y, A, tau,
     ## Things to check and compute that depend on PENALTY:
     if penalty.lower() == 'canonical':
         pass
-    elif penalty.lower() in ('onb', 'rdp', 'rdp-ti'):
+    elif penalty.lower() in ('rdp', 'rdp-ti'):
         todo()
     elif penalty.lower() == 'tv': ## Cannot have a vectorized tau (yet)
             if type(tau) != float:
                 raise TypeError('A vector regularization parameter ''TAU'' cannot be used in conjuction with the TV penalty.')
+    elif penalty.lower() == 'onb': ## There is a sparsifying basis
+        ## Already checked for valid subminiter, submaxiter, and subtolerance
+        ## Check for valid substopcriterion
+        ## Need to check for the presense of W and WT
+        ## Further checks to ensure we have both W and WT defined and that
+        ## the sizes are compatable by checking if y + A(WT(W(AT(y)))) can
+        ## be computed
+        check_input(W != [], 'W', "provided as a method to compute W*x matrix-vector products.", 'W')
+        if hasattr(W, '__call__'): # W is a function call
+            check_input(WT != [], 'WT', "provided as a method to compute W*x matrix-vector products.", 'WT') ## Fail if WT is not specified and W is a function call
+            if hasattr(WT, '__call__'): # WT is a function call
+                try: 
+                    dummy = y + A(WT(W(AT(y))))
+                except:
+                    raise TypeError("Size incompatability between ''W'' and ''WT''.")
+            else: ## W is a function call, WT is a matrix
+                try: 
+                    dummy = y + A(WT*W(AT(y)))
+                except:
+                    raise TypeError("Size incompatability between ''W'' and ''WT''.")
+                WTorig = WT.copy()
+                WT = lambda x: WTorig.dot(x)
+        else: ## W is a matrix
+            if WT==[]: ## W is a matrix, and WT not provided.
+                Worig = W.copy()
+                ## /!\ Are we sure we are really defining AT and not WT?
+                print("resetting AT and A")
+                AT = lambda x: Worig.T.dot(x) # Just define function calls.
+                A = lambda x: Worig.dot(x)
+            else: # W is a matrix, and WT provided, we need to check
+                if hasattr(WT, '__call__'): ## WT is a function call
+                    try:
+                        dummy = y + A(WT(W.dot(AT(y))))
+                    except:
+                        raise TypeError("Size incompatability between ''W'' and ''WT''.")
+                    Worig = W.copy()
+                    W = lambda x: Worig.dot(x) ## Define W as a function call
+                else: # W and WT are matrices
+                    try:
+                        dummy = y + A(WT(W.dot(AT(y))))
+                    except:
+                        raise TypeError("Size incompatability between ''W'' and ''WT''.")
+                    Worig = W.copy()
+                    WT = lambda x: Worig.T.dot(x) ## Define W and WT as function calls
+                    W  = lambda x: Worig.dot(x)
 
-    # switch lower(penalty)
-    #     case 'onb' 
-    #         % Already checked for valid subminiter, submaxiter, and subtolerance
-    #         % Check for valid substopcriterion 
-    #         % Need to check for the presense of W and WT
-    #         if isempty(W)
-    #             error(['Parameter ''W'' not specified.  Please provide a ',...
-    #                 'method to compute W*x matrix-vector products.'])
-    #         end
-    #         % Further checks to ensure we have both W and WT defined and that
-    #         % the sizes are compatable by checking if y + A(WT(W(AT(y)))) can
-    #         % be computed
-    #         if isa(W, 'function_handle') % W is a function call, so WT is required
-    #             if isempty(WT) % WT simply not provided
-    #                 error(['Parameter ''WT'' not specified.  Please provide a ',...
-    #                     'method to compute W''*x matrix-vector products.'])
-    #             else % WT was provided
-    #         if isa(WT, 'function_handle') % W and WT are function calls
-    #             try dummy = y + A(WT(W(AT(y))));
-    #             catch exception; 
-    #                 error('Size incompatability between ''W'' and ''WT''.')
-    #             end
-    #         else % W is a function call, WT is a matrix        
-    #             try dummy = y + A(WT*W(AT(y)));
-    #             catch exception
-    #                 error('Size incompatability between ''W'' and ''WT''.')
-    #             end
-    #             WT = @(x) WT*x; % Define WT as a function call
-    #         end
-    #     end
-    # else
-    #     if isempty(WT) % W is a matrix, and WT not provided.
-    #         AT = @(x) W'*x; % Just define function calls.
-    #         A = @(x) W*x;
-    #     else % W is a matrix, and WT provided, we need to check
-    #         if isa(WT, 'function_handle') % W is a matrix, WT is a function call            
-    #             try dummy = y + A(WT(W*AT(y)));
-    #             catch exception
-    #                 error('Size incompatability between ''W'' and ''WT''.')
-    #             end
-    #             W = @(x) W*x; % Define W as a function call
-    #         else % W and WT are matrices
-    #             try dummy = y + A(WT(W*(AT(y))));
-    #             catch exception
-    #                 error('Size incompatability between ''W'' and ''WT''.')
-    #             end
-    #             WT = @(x) WT*x; % Define A and AT as function calls
-    #             W = @(x) W*x;
-    #         end
-    #     end
-    # end
+    else:
+        todo()
     # 	case 'rdp'
     #         %todo
     #         % Cannot enforce monotonicity (yet)
@@ -506,16 +485,15 @@ def SPIRALTAP(y, A, tau,
     Axprevious = Ax
     xprevious = x
     grad = computegrad(y, Ax, AT, noisetype, logepsilon)
+
     ## Prealocate arrays for storing results
-    # Initialize cputime and objective empty anyway (avoids errors in subfunctions):
-    #cputime = []
     cputime = np.zeros((maxiter+1))
     objective = np.zeros((maxiter+1))
 
     if saveobjective:
         objective[itern-1] = computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT)
     else:
-        objective[itern-1] = computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT) # this must be initialized anyway
+        objective[itern-1] = computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT) # MW: this must be initialized anyway
     if savereconerror:
         reconerror = np.zeros((maxiter+1))
         if reconerrortype == 0: # RMS error
