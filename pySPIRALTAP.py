@@ -185,7 +185,7 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
             return out
         else:
             return step*(step>0)        
-    elif penalty.lower == 'onb' : ## Signal not sparse in the direct basis.
+    elif penalty.lower() == 'onb' : ## Signal not sparse in the direct basis.
         return subsolutions.constrainedl2l1denoise(step, W, WT, tau/alpha, mu,
                                                    subminiter, submaxiter,
                                                    substopcriterion, subtolerance)
