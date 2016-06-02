@@ -408,19 +408,18 @@ def SPIRALTAP(y, A, tau,
                 if hasattr(WT, '__call__'): ## WT is a function call
                     try:
                         dummy = y + A(WT(W.dot(AT(y))))
-                    except:
+                    except Exception :
                         raise TypeError("Size incompatability between ''W'' and ''WT''.")
                     Worig = W.copy()
                     W = lambda x: Worig.dot(x) ## Define W as a function call
                 else: # W and WT are matrices
                     try:
-                        dummy = y + A(WT(W.dot(AT(y))))
+                        dummy = y + A(WT.dot(W.dot(AT(y))))
                     except:
                         raise TypeError("Size incompatability between ''W'' and ''WT''.")
                     Worig = W.copy()
                     WT = lambda x: Worig.T.dot(x) ## Define W and WT as function calls
                     W  = lambda x: Worig.dot(x)
-
     else:
         todo()
     # 	case 'rdp'
