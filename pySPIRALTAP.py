@@ -109,7 +109,7 @@
 # ==== Importations
 from __future__ import print_function
 import sys, time, datetime
-import denoise_bound
+import denoise_bound, subsolutions
 import numpy as np
 
 # ==== Error & helper functions
@@ -186,7 +186,9 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
         else:
             return step*(step>0)        
     elif penalty.lower == 'onb' : ## Signal not sparse in the direct basis.
-        todo() ## Only partially implemented, see below.
+        return subsolutions.constrainedl2l1denoise(step, W, WT, tau/alpha, mu,
+                                                   subminiter, submaxiter,
+                                                   substopcriterion, subtolerance)
     else:
         todo()
 # function subsolution = computesubsolution(step,tau,alpha,penalty,mu,varargin)
