@@ -1,4 +1,0 @@
-include README.md
-include MANIFEST.in
-include subsolutions.py
-include denoise_bound.py
