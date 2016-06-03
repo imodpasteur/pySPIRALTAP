@@ -189,27 +189,12 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
         return subsolutions.constrainedl2l1denoise(step, W, WT, tau/alpha, mu,
                                                    subminiter, submaxiter,
                                                    substopcriterion, subtolerance)
-    else:
+    elif penalty.lower() == 'rdp':
         todo()
-# function subsolution = computesubsolution(step,tau,alpha,penalty,mu,varargin)
-#     switch lower(penalty)
-#         case 'onb'
-#             % if onb is selected, varargin must be such that
-#             W                   = varargin{1};
-#             WT                  = varargin{2};
-#             subminiter          = varargin{3};
-#             submaxiter          = varargin{4};
-#             substopcriterion    = varargin{5};
-#             subtolerance        = varargin{6};
-                                   
-#             subsolution = constrainedl2l1denoise(step,W,WT,tau./alpha,mu,...
-#                 subminiter,submaxiter,substopcriterion,subtolerance);
-#         case 'rdp'
-#             subsolution = haarTVApprox2DNN_recentered(step,tau./alpha,-mu);
-#         case 'rdp-ti'
-#             subsolution = haarTIApprox2DNN_recentered(step,tau./alpha,-mu);
-#     end           
-# end
+        return haarTVApprox2DNN_recentered(step,tau./alpha,-mu) ## To be implemented
+    elif penalty.lower() == 'rdp-ti':
+        todo()
+        return haarTIApprox2DNN_recentered(step,tau./alpha,-mu)
 
 # % =====================================
 # % = Termination Criternia Computation: =
