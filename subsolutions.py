@@ -11,6 +11,7 @@
 # ==== Importations
 from __future__ import print_function
 import numpy as np
+import sys
 
 # ==== Error & helper functions
 def todo():
@@ -35,6 +36,20 @@ def constrainedl2l1denoise(y, W, WT, tau, mu, miniter, maxiter,
     outputs and such...
     """
 
+    if 0:
+        print("W identity?:", np.all(y==W(y)))
+        print("y:", y.shape, y.sum())
+        print("W:", W(y).shape)
+        print("WT:", WT(y).shape)
+        print("tau:", tau)
+        print("mu:", mu)
+        print("miniter:", miniter)
+        print("maxiter:", maxiter)
+        print("stopcriterion:", stopcriterion)
+        print("tolerance:", tolerance)
+        np.savetxt('./dev/y.txt', y)
+        print('Saved `y` input file')
+        
     gamma = np.zeros(y.size)
     lamb = gamma.copy() ## Renamed lambda to lamb as lambda is a reserved keyword in Python
     WTlamb = WT(lamb)
@@ -43,40 +58,33 @@ def constrainedl2l1denoise(y, W, WT, tau, mu, miniter, maxiter,
     converged = False
 
     while (iter <= miniter) or (iter <= maxiter) and not converged:
-        ## Assess the values of the Matlab code please. Use OCtave :-)
+        gamma = -y - WTlamb
+        gamma[gamma < -tau] = -tau
+        gamma[gamma > tau] = tau
+        lamb = -W(y+gamma)-mu
+        lamb[lamb < 0] = 0
+        WTlamb = WT(lamb)
+        theta = y + gamma + WTlamb
 
+        ## Check for convergence
+        if iter >= miniter: ## no need to check if miniter not reached
+            if stopcriterion == 0: ## Just exhaust maxiter
+                converged = False
+            elif stopcriterion == 1:
+                primal_obj = 0.5*((theta-y)**2).sum() + tau*np.abs(theta).sum()
+                dual_obj = -0.5*(theta**2).sum() + 0.5*(y**2).sum() - mu*lamb.sum()
+                rel_duality_gap = np.abs(primal_obj-dual_obj)/max(-primal_obj,dual_obj);
+                if verbose: ## display some stuff
+                    duality_gap = primal_obj - dual_obj
+                    print('l1Den: It={}, PObj={}, DObj={}, DGap={}, RDGap={}'.format(iter,
+                                                                                     primal_obj,
+                                                                                     dual_obj,
+                                                                                     duality_gap,
+                    rel_duality_gap))
+                if rel_duality_gap <= tolerance or rel_duality_gap == np.inf:
+                    converged = True
         iter += 1
-    
-    # while (iter <= miniter) || ((iter <= maxiter) && not(converged))
-    #     %disp(['Subiter = ',num2str(iter)])
-    #     gamma       = min( max( -tau, -y - WTlamb), tau);
-    #     lamb      = max( -W(y + gamma) - mu, 0);
-    #     WTlamb    = WT(lamb);
-    #     theta       = y + gamma + WTlamb;
 
-    #     % Check for convergence
-    #     if iter >= miniter % no need to check if miniter not reached
-    #         switch stopcriterion
-    #             case 0
-    #                 % Just exhaust maxiter
-    #                 converged = 0; #=False
-    #             case 1
-    #                 primal_obj = sum( (theta(:)-y(:)).^2)./2 + tau.*sum(abs(theta(:)));
-    #                 dual_obj = -sum( theta(:).^2)./2 + sum(y(:).^2)./2-mu.*sum(lamb(:));
-    #                 % Need this for what's in verbose:
-    #                 % duality_gap = primal_obj - dual_obj;
-    #                 rel_duality_gap = abs(primal_obj-dual_obj)/max(-primal_obj,dual_obj);
-    #                 if verbose
-    #                     % display some stuff
-    #                     % fprintf('l1Den: It=%4d, PObj=%13.5e, DObj=%13.5e, DGap=%13.5e, RDGap=%13.5e\n', iter,primal_obj,dual_obj,duality_gap,rel_duality_gap)
-    #                 end
-    #                 if (rel_duality_gap <= tolerance) || isinf(rel_duality_gap)
-    #                     converged = 1; =True
-    #                 end
-    #         end
-    #     end
-    #     iter = iter + 1;
-    # end    
-
-    todo() ## Raise NotImplemented...
+    #print(np.abs(W(theta)))
+    #todo() ## Raise NotImplemented...
     return np.abs(W(theta)) # Outpur
