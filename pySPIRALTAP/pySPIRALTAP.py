@@ -109,7 +109,7 @@
 # ==== Importations
 from __future__ import print_function
 import sys, time, datetime
-import denoise_bound
+import denoise_bound, subsolutions
 import numpy as np
 
 # ==== Error & helper functions
@@ -185,29 +185,16 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
             return out
         else:
             return step*(step>0)        
-    elif penalty.lower == 'onb' : ## Signal not sparse in the direct basis.
-        todo() ## Only partially implemented, see below.
-    else:
+    elif penalty.lower() == 'onb' : ## Signal not sparse in the direct basis.
+        return subsolutions.constrainedl2l1denoise(step, W, WT, tau/alpha, mu,
+                                                   subminiter, submaxiter,
+                                                   substopcriterion, subtolerance)
+    elif penalty.lower() == 'rdp':
         todo()
-# function subsolution = computesubsolution(step,tau,alpha,penalty,mu,varargin)
-#     switch lower(penalty)
-#         case 'onb'
-#             % if onb is selected, varargin must be such that
-#             W                   = varargin{1};
-#             WT                  = varargin{2};
-#             subminiter          = varargin{3};
-#             submaxiter          = varargin{4};
-#             substopcriterion    = varargin{5};
-#             subtolerance        = varargin{6};
-                                   
-#             subsolution = constrainedl2l1denoise(step,W,WT,tau./alpha,mu,...
-#                 subminiter,submaxiter,substopcriterion,subtolerance);
-#         case 'rdp'
-#             subsolution = haarTVApprox2DNN_recentered(step,tau./alpha,-mu);
-#         case 'rdp-ti'
-#             subsolution = haarTIApprox2DNN_recentered(step,tau./alpha,-mu);
-#     end           
-# end
+        return haarTVApprox2DNN_recentered(step,tau/alpha,-mu) ## To be implemented
+    elif penalty.lower() == 'rdp-ti':
+        todo()
+        return haarTIApprox2DNN_recentered(step,tau/alpha,-mu)
 
 # % =====================================
 # % = Termination Criternia Computation: =
@@ -283,7 +270,7 @@ def SPIRALTAP(y, A, tau,
     
     ## NOISETYPE:  For now only two options are available 'Poisson' and 'Gaussian'.
     check_input(type(noisetype)==str and noisetype.lower() in ('poisson', 'gaussian'),
-                noisetype, "either 'Gaussian' or 'Poisson'", 'noisetype'):
+                noisetype, "either 'Gaussian' or 'Poisson'", 'noisetype')
 
     ## PENALTY:  The implemented penalty options are 'Canonical, 'ONB', 'RDP', 'RDP-TI','TV'.
     check_input(type(penalty)==str and penalty.lower() in ('canonical','onb','rdp','rdp-ti','tv'), penalty, "only 'Canonical', 'ONB', 'RDP', 'RDP-TI', or 'TV'", 'penalty')
@@ -350,8 +337,8 @@ def SPIRALTAP(y, A, tau,
             raise TypeError("The size of ''TRUTH'' is incompatible with the given, sensing matrix ''A''.")
         if truth.min() < 0:
             raise ValueError("The size of ''TRUTH'' is incompatable with the given sensing matrix ''A''.")
-    check_input(type(saveobjective)==bool, checkinput, "a boolean (True or False)", 'saveobjective')
-    check_input(type(savereconerror)==bool, checkinput, "a boolean (True or False)", 'savereconerror')
+    check_input(type(saveobjective)==bool, saveobjective, "a boolean (True or False)", 'saveobjective')
+    check_input(type(savereconerror)==bool, savereconerror, "a boolean (True or False)", 'savereconerror')
     check_input(not ((savesolutionpath and truth==[]) or (savereconerror and truth==[])), '', "The option to save the reconstruction error ''SAVERECONERROR'' can only be used if the true signal ''TRUTH'' is provided.", 'savereconerror')
     check_input(type(savecputime)==bool, savecputime, "a boolean (True or False)", 'savecputime')
     check_input(type(savesolutionpath)==bool, savesolutionpath, "a boolean (True or False)", 'savecputime')
@@ -382,7 +369,6 @@ def SPIRALTAP(y, A, tau,
         ## Further checks to ensure we have both W and WT defined and that
         ## the sizes are compatable by checking if y + A(WT(W(AT(y)))) can
         ## be computed
-        
         check_input(W != [], 'W', "provided as a method to compute W*x matrix-vector products.", 'W')
         if hasattr(W, '__call__'): # W is a function call
             check_input(WT != [], 'WT', "provided as a method to compute W*x matrix-vector products.", 'WT') ## Fail if WT is not specified and W is a function call
@@ -402,25 +388,25 @@ def SPIRALTAP(y, A, tau,
             if WT==[]: ## W is a matrix, and WT not provided.
                 Worig = W.copy()
                 ## /!\ Are we sure we are really defining AT and not WT?
+                print("resetting AT and A")
                 AT = lambda x: Worig.T.dot(x) # Just define function calls.
                 A = lambda x: Worig.dot(x)
             else: # W is a matrix, and WT provided, we need to check
                 if hasattr(WT, '__call__'): ## WT is a function call
                     try:
                         dummy = y + A(WT(W.dot(AT(y))))
-                    except:
+                    except Exception :
                         raise TypeError("Size incompatability between ''W'' and ''WT''.")
                     Worig = W.copy()
                     W = lambda x: Worig.dot(x) ## Define W as a function call
                 else: # W and WT are matrices
                     try:
-                        dummy = y + A(WT(W.dot(AT(y))))
+                        dummy = y + A(WT.dot(W.dot(AT(y))))
                     except:
                         raise TypeError("Size incompatability between ''W'' and ''WT''.")
                     Worig = W.copy()
                     WT = lambda x: Worig.T.dot(x) ## Define W and WT as function calls
                     W  = lambda x: Worig.dot(x)
-
     else:
         todo()
     # 	case 'rdp'
