@@ -191,10 +191,10 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
                                                    substopcriterion, subtolerance)
     elif penalty.lower() == 'rdp':
         todo()
-        return haarTVApprox2DNN_recentered(step,tau./alpha,-mu) ## To be implemented
+        return haarTVApprox2DNN_recentered(step,tau/alpha,-mu) ## To be implemented
     elif penalty.lower() == 'rdp-ti':
         todo()
-        return haarTIApprox2DNN_recentered(step,tau./alpha,-mu)
+        return haarTIApprox2DNN_recentered(step,tau/alpha,-mu)
 
 # % =====================================
 # % = Termination Criternia Computation: =
