@@ -187,9 +187,9 @@ elif demo == 2:
     Af = A(f)
 
     # ==== Setup wavelet basis for l1-onb
-    wav = rwt.daubcqf(2)
-    W = lambda x: rwt.midwt(x,wav)
-    WT = lambda x: rwt.midwt(x,wav)
+    wav = rwt.daubcqf(2)[0]
+    W = lambda x: rwt.idwt(x,wav)[0]
+    WT = lambda x: rwt.idwt(x,wav)[0]
 
     # ==== Set regularization parameters and iteration limit:
     tauonb      = 1.0e-5
@@ -209,11 +209,12 @@ elif demo == 2:
     # ==== Run the algorithm, demonstrating all the options for our algorithm:
     #    [fhatSPIRALonb, iterationsSPIRALonb, objectiveSPIRALonb,...
     #        reconerrorSPIRALonb, cputimeSPIRALonb] ...
-    pySPIRALTAP.SPIRALTAP(y, A, tauonb, penalty='onb', AT=AT, W=W, WT=WT, maxiter=maxiter,
-                          initialisation=finit, miniter=miniter, stopcriterion=stopcriterion,
-                          monotone=True, saveobjective=True, savereconerror=True,
-                          savecputime=True, savesolutionpath=False, truth=f, verbose=verbose)
-"""        
+    resSPIRAL = pySPIRALTAP.SPIRALTAP(y, A, tauonb, penalty='onb', AT=AT, W=W, WT=WT,
+                                      maxiter=maxiter, initialisation=finit, miniter=miniter,
+                                      stopcriterion=stopcriterion, monotone=True, 
+                                      saveobjective=True, savereconerror=True, savecputime=True, 
+                                      savesolutionpath=False, truth=f, verbose=verbose)
+    """        
         % Run the algorithm:
         % Demonstrating all the options for our algorithm:
         [fhatSPIRALonb, iterationsSPIRALonb, objectiveSPIRALonb,...
