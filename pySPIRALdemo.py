@@ -9,12 +9,13 @@
 # found below.
 
 # ==== importations
+from __future__ import print_function
 try:
     import rwt
 except Exception:
     raise ImportError("the 'rwt' (Rice Wavelet Toolbox) package could not be loaded. It can be installed from https://github.com/ricedsp/rwt/")
 
-import pySPIRALTAP
+import pySPIRALTAP, sys
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io # to import.mat files
@@ -189,7 +190,7 @@ elif demo == 2:
     # ==== Setup wavelet basis for l1-onb
     wav = rwt.daubcqf(2)[0]
     W = lambda x: rwt.idwt(x,wav)[0]
-    WT = lambda x: rwt.idwt(x,wav)[0]
+    WT = lambda x: rwt.dwt(x,wav)[0]
 
     # ==== Set regularization parameters and iteration limit:
     tauonb      = 1.0e-5
@@ -201,187 +202,131 @@ elif demo == 2:
     maxiter = 100
     stopcriterion = 3
     tolerance = 1e-8
-    verbose = 10
+    verbose = 10 
 
     # ==== Simple initialization: AT(y) rescaled to have a least-squares fit to the mean value
     finit = y.sum()*AT(y).size/AT(y).sum()/AT(np.ones_like(y)).sum() * AT(y)
 
     # ==== Run the algorithm, demonstrating all the options for our algorithm:
-    #    [fhatSPIRALonb, iterationsSPIRALonb, objectiveSPIRALonb,...
-    #        reconerrorSPIRALonb, cputimeSPIRALonb] ...
     resSPIRAL = pySPIRALTAP.SPIRALTAP(y, A, tauonb, penalty='onb', AT=AT, W=W, WT=WT,
                                       maxiter=maxiter, initialisation=finit, miniter=miniter,
                                       stopcriterion=stopcriterion, monotone=True, 
                                       saveobjective=True, savereconerror=True, savecputime=True, 
                                       savesolutionpath=False, truth=f, verbose=verbose)
-    """        
-        % Run the algorithm:
-        % Demonstrating all the options for our algorithm:
-        [fhatSPIRALonb, iterationsSPIRALonb, objectiveSPIRALonb,...
-            reconerrorSPIRALonb, cputimeSPIRALonb] ...
-            = SPIRALTAP(y,A,tauonb,...
-            'penalty','ONB',...
-            'AT',AT,...
-            'W',W,...
-            'WT',WT,...
-            'maxiter',maxiter,...
-            'Initialization',finit,...
-            'miniter',miniter,...
-            'stopcriterion',stopcriterion,...
-            'monotone',1,...
-            'saveobjective',1,...
-            'savereconerror',1,...
-            'savecputime',1,...
-            'savesolutionpath',0,...
-            'truth',f,...
-            'verbose',verbose);
+    ## Deparse outputs
+    fhatSPIRALonb = resSPIRAL[0]
+    parSPIRAL = resSPIRAL[1]
+    iterationsSPIRALonb = parSPIRAL['iterations']
+    objectiveSPIRALonb = parSPIRAL['objective']
+    reconerrorSPIRALonb = parSPIRAL['reconerror']
+    cputimeSPIRALonb = parSPIRAL['cputime']
 
-        [fhatSPIRALtv, iterationsSPIRALtv, objectiveSPIRALtv,...
-            reconerrorSPIRALtv, cputimeSPIRALtv] ...
-            = SPIRALTAP(y,A,tautv,...
-            'penalty','TV',...
-            'AT',AT,...    
-            'maxiter',maxiter,...
-            'Initialization',finit,...
-            'miniter',miniter,...
-            'stopcriterion',stopcriterion,...
-            'tolerance',tolerance,...
-            'monotone',1,...
-            'saveobjective',1,...
-            'savereconerror',1,...
-            'savecputime',1,...
-            'savesolutionpath',0,...
-            'truth',f,...
-            'verbose',verbose);
-        
-        [fhatSPIRALrdp, iterationsSPIRALrdp, ...
-            reconerrorSPIRALrdp, cputimeSPIRALrdp] ...
-            = SPIRALTAP(y,A,taurdp,...
-            'penalty','RDP',...
-            'AT',AT,...
-            'maxiter',maxiter,...
-            'Initialization',finit,...
-            'miniter',miniter,...
-            'stopcriterion',stopcriterion,...
-            'tolerance',tolerance,...
-            'monotone',0,...
-            'saveobjective',0,...
-            'savereconerror',1,...
-            'savecputime',1,...
-            'savesolutionpath',0,...
-            'truth',f,...
-            'verbose',verbose);
-        
-        [fhatSPIRALrdpti, iterationsSPIRALrdpti, ...
-            reconerrorSPIRALrdpti, cputimeSPIRALrdpti] ...
-            = SPIRALTAP(y,A,taurdpti,...
-            'penalty','RDP-TI',...
-            'maxiter',maxiter,...
-            'Initialization',finit,...
-            'miniter',miniter,...
-            'AT',AT,...
-            'stopcriterion',stopcriterion,...
-            'tolerance',tolerance,...
-            'monotone',0,...
-            'saveobjective',0,...
-            'savereconerror',1,...
-            'savecputime',1,...
-            'savesolutionpath',0,...
-            'truth',f,...
-            'verbose',verbose);
-        
-        % ===== Display Results ====
-        % Display Problem Data
-        figure(1);
-        clf
-        subplot(1,3,1);
-            imagesc(f);colormap gray;axis image
-            title('True Signal (f)')
-        subplot(1,3,2);
-            imagesc(Af);colormap gray;axis image
-            title('True Detector Intensity (Af)')
-        subplot(1,3,3);
-            imagesc(y),[0 max(Af(:))];colormap gray;axis image
-            title('Observed Photon Counts (y)')
-        
-        % Display Objectives for Monotonic Methods
-        figure(2)
-        subplot(2,2,1)
-            plot(0:iterationsSPIRALonb,objectiveSPIRALonb,'b')
-            title({'ONB Objective Evolution (Iteration)',' '})
-            xlabel('Iteration'); ylabel('Objective')
-            xlim([0 iterationsSPIRALonb])
-        subplot(2,2,2)
-            plot(cputimeSPIRALonb, objectiveSPIRALonb,'b')
-            title({'ONB Objective Evolution (CPU Time)',' '})
-            xlabel('CPU Time'); ylabel('Objective')
-            xlim([0 cputimeSPIRALonb(end)])
-        subplot(2,2,3)
-            plot(0:iterationsSPIRALtv, objectiveSPIRALtv,'r')
-            title({'TV Objective Evolution (Iteration)',' '})
-            xlabel('Iteration'); ylabel('Objective')
-            xlim([0 iterationsSPIRALtv])
-        subplot(2,2,4)
-            plot(cputimeSPIRALtv, objectiveSPIRALtv,'r')
-            title({'TV Objective Evolution (CPU Time)',' '})
-            xlabel('CPU Time'); ylabel('Objective')
-            xlim([0 cputimeSPIRALtv(end)])
+    resSPIRAL = pySPIRALTAP.SPIRALTAP(y, A, tautv, penalty='tv', AT=AT,
+                                      maxiter=maxiter, initialisation=finit, miniter=miniter,
+                                      stopcriterion=stopcriterion, tolerance=tolerance,
+                                      monotone=True, saveobjective=True, savereconerror=True,
+                                      savecputime=True, savesolutionpath=False, truth=f,
+                                      verbose=verbose)
+    ## Deparse outputs
+    fhatSPIRALtv = resSPIRAL[0]
+    parSPIRAL = resSPIRAL[1]
+    iterationsSPIRALtv = parSPIRAL['iterations']
+    objectiveSPIRALtv = parSPIRAL['objective']
+    reconerrorSPIRALtv = parSPIRAL['reconerror']
+    cputimeSPIRALtv = parSPIRAL['cputime']
+    
+    # resSPIRAL = pySPIRALTAP.SPIRALTAP(y, A, taurdp, penalty='rdp', AT=AT, maxiter=maxiter,
+    #                                   initialisation=finit, miniter=miniter,
+    #                                   stopcriterion=stopcriterion, tolerance=tolerance,
+    #                                   monotone=False, saveobjective=False, savereconerror=True,
+    #                                   savecputime=True, savesolutionpath=False, truth=f,
+    #                                   verbose=verbose)
+    # ## Deparse outputs
+    # fhatSPIRALrdp = resSPIRAL[0]
+    # parSPIRAL = resSPIRAL[1]
+    # iterationsSPIRALrdp = parSPIRAL['iterations']
+    # reconerrorSPIRALrdp = parSPIRAL['reconerror']
+    # cputimeSPIRALrdp = parSPIRAL['cputime']
 
-        % Display RMS Error Evolution for All Methods
-        figure(3)
-        clf
-        subplot(2,1,1)
-            plot(0:iterationsSPIRALonb,reconerrorSPIRALonb,'b')
-            hold on
-            plot(0:iterationsSPIRALtv,reconerrorSPIRALtv,'r')
-            plot(0:iterationsSPIRALrdp,reconerrorSPIRALrdp,'m')
-            plot(0:iterationsSPIRALrdpti,reconerrorSPIRALrdpti,'g')
-            legend('ONB','TV','RDP','RDP-TI')
-            title('Error Evolution (Iteration)')
-            xlabel('Iteration'); ylabel('RMS Error')
-        subplot(2,1,2)
-            plot(cputimeSPIRALonb,reconerrorSPIRALonb,'b')
-            hold on
-            plot(cputimeSPIRALtv,reconerrorSPIRALtv,'r')
-            plot(cputimeSPIRALrdp,reconerrorSPIRALrdp,'m')
-            plot(cputimeSPIRALrdpti,reconerrorSPIRALrdpti,'g')
-            legend('ONB','TV','RDP','RDP-TI')
-            title('Error Evolution (CPU Time)')
-            xlabel('CPU Time'); ylabel('RMS Error')
-        
-        % Display Images for All Methods
-        figure(4)
-        subplot(2,2,1);
-            imagesc(fhatSPIRALonb,[0 max(f(:))]);colormap gray;axis image
-            title({'ONB', ['RMS = ',num2str(reconerrorSPIRALonb(end))]})
-        subplot(2,2,2);
-            imagesc(fhatSPIRALtv,[0 max(f(:))]);colormap gray;axis image
-            title({'TV', ['RMS = ',num2str(reconerrorSPIRALtv(end))]})
-        subplot(2,2,3);
-            imagesc(fhatSPIRALrdp,[0 max(f(:))]);colormap gray;axis image
-            title({'RDP', ['RMS = ',num2str(reconerrorSPIRALrdp(end))]})
-        subplot(2,2,4);
-            imagesc(fhatSPIRALrdpti,[0 max(f(:))]);colormap gray;axis image
-            title({'RDP-TI', ['RMS = ',num2str(reconerrorSPIRALrdpti(end))]})
-            
-        % Difference images
-        diffSPIRALonb = abs(f-fhatSPIRALonb);
-        diffSPIRALtv = abs(f-fhatSPIRALtv);
-        diffSPIRALrdp = abs(f-fhatSPIRALrdp);
-        diffSPIRALrdpti = abs(f-fhatSPIRALrdpti);
-        maxdiffSPIRAL = max([diffSPIRALonb(:);diffSPIRALtv(:);...
-            diffSPIRALrdp(:);diffSPIRALrdpti(:)]);
-        figure(5)
-        subplot(2,2,1);
-            imagesc(diffSPIRALonb,[0 maxdiffSPIRAL]);colormap jet;axis image
-            title({'ONB', ['RMS = ',num2str(reconerrorSPIRALonb(end))]})
-        subplot(2,2,2);
-            imagesc(diffSPIRALtv,[0 maxdiffSPIRAL]);colormap jet;axis image
-            title({'TV', ['RMS = ',num2str(reconerrorSPIRALtv(end))]})
-        subplot(2,2,3);
-            imagesc(diffSPIRALrdp,[0 maxdiffSPIRAL]);colormap jet;axis image
-            title({'RDP', ['RMS = ',num2str(reconerrorSPIRALrdp(end))]})
-        subplot(2,2,4);
-            imagesc(diffSPIRALrdpti,[0 maxdiffSPIRAL]);colormap jet;axis image
-            title({'RDP-TI', ['RMS = ',num2str(reconerrorSPIRALrdpti(end))]})
-"""
+    # [fhatSPIRALrdpti, iterationsSPIRALrdpti, ...
+    #  reconerrorSPIRALrdpti, cputimeSPIRALrdpti] ...
+    # resSPIRAL = pySPIRALTAP.SPIRALTAP(y, A, taurdpti, penalty='rdp-ti', maxiter=maxiter,
+    #                                   initialization=finit, miniter=miniter, AT=AT,
+    #                                   stopcriterion=stopcriterion, tolerance=tolerance,
+    #                                   monotone=False, saveobjective=False, savereconerror=True,
+    #                                   savecputime=True, savesolutionpath=False, truth=f,
+    #                                   verbose=verbose)
+    # ## Deparse outputs
+    # fhatSPIRALrdpti = resSPIRAL[0]
+    # parSPIRAL = resSPIRAL[1]
+    # iterationsSPIRALrdpti = parSPIRAL['iterations']
+    # objectiveSPIRALtv = parSPIRAL['objective']
+    # reconerrorSPIRALrdpti = parSPIRAL['reconerror']
+    # cputimeSPIRALrdpti = parSPIRAL['cputime']
+    print("WARNING: RDP-based reconstruction are not implemented yet" , file=sys.stderr)
+
+    # ==== Display results
+    # Problem data
+    plt.figure()
+    plt.subplot(131); plt.imshow(f, cmap='gray'); plt.title('True Signal (f)')
+    plt.subplot(132); plt.imshow(Af, cmap='gray'); plt.title('True Detector Intensity (Af)')
+    plt.subplot(133); plt.imshow(y, cmap='gray'); plt.title('Observed Photon Counts (y)')
+
+    # Display Objectives for Monotonic Methods
+    plt.figure()
+    plt.subplot(121)
+    plt.plot(range(iterationsSPIRALonb), objectiveSPIRALonb,
+             label='ONB Objective Evolution (Iteration)')
+    plt.plot(range(iterationsSPIRALtv), objectiveSPIRALtv,
+            label='TV Objective Evolution (Iteration)')
+    plt.xlabel('Iteration');plt.ylabel('Objective');plt.legend()
+    plt.xlim((0, np.max((iterationsSPIRALonb, iterationsSPIRALtv))))
+
+    plt.subplot(122)
+    plt.plot(cputimeSPIRALonb, objectiveSPIRALonb, label='ONB Objective Evolution (CPU Time)')
+    plt.plot(cputimeSPIRALtv, objectiveSPIRALtv, label='TV Objective Evolution (CPU Time)')
+    plt.xlabel('CPU Time');plt.ylabel('Objective');plt.legend()
+    
+    # Display RMS Error Evolution for All Methods
+    plt.subplot(121)
+    plt.plot(range(iterationsSPIRALonb), reconerrorSPIRALonb, label='ONB')
+    plt.plot(range(iterationsSPIRALtv), reconerrorSPIRALtv, label='TV')
+    #plt.plot(range(iterationsSPIRALrdp), reconerrorSPIRALrdp, label='RDP')
+    #plt.plot(range(iterationsSPIRALrdpti), reconerrorSPIRALrdpti, label='RDP-TI')
+    plt.title('Error Evolution (Iteration)');plt.xlabel('Iteration');plt.ylabel('RMS Error')
+
+    plt.subplot(122)
+    plt.plot(cputimeSPIRALonb, reconerrorSPIRALonb, label='ONB')
+    plt.plot(cputimeSPIRALtv, reconerrorSPIRALtv, label='TV')
+    #plt.plot(cputimeSPIRALrdp), reconerrorSPIRALrdp, label='RDP')
+    #plt.plot(cputimeSPIRALrdpti), reconerrorSPIRALrdpti, label='RDP-TI')
+    plt.title('Error Evolution (CPU Time)');plt.xlabel('CPU Time');plt.ylabel('RMS Error')
+
+    # Display Images for All Methods
+    plt.figure()
+    plt.subplot(121);plt.imshow(fhatSPIRALonb, cmap='gray')
+    plt.title("ONB, RMS={}".format(reconerrorSPIRALonb[-1]))
+    plt.subplot(122);plt.imshow(fhatSPIRALtv, cmap='gray')
+    plt.title("TV, RMS={}".format(reconerrorSPIRALtv[-1]))
+    #plt.subplot(223);plt.imshow(fhatSPIRALrdp, cmap='gray')
+    #plt.title("RDP, RMS=".format(reconerrorSPIRALrdp[-1]))
+    #plt.subplot(224);plt.imshow(fhatSPIRALrdpti, cmap='gray')
+    #plt.title("RDP-TI, RMS=".format(reconerrorSPIRALrdpti[-1]))
+
+    # Difference images
+    diffSPIRALonb = np.abs(f-fhatSPIRALonb)
+    diffSPIRALtv = np.abs(f-fhatSPIRALtv)
+    #diffSPIRALrdp = np.abs(f-fhatSPIRALrdp)
+    #diffSPIRALrdpti = np.abs(f-fhatSPIRALrdpti)
+
+    plt.figure()
+    plt.subplot(121);plt.imshow(diffSPIRALonb)
+    plt.title("ONB, RMS={}".format(reconerrorSPIRALonb[-1]))
+    plt.subplot(122);plt.imshow(diffSPIRALtv)
+    plt.title("TV, RMS={}".format(reconerrorSPIRALtv[-1]))
+    #plt.subplot(223);plt.imshow(diffSPIRALrdp)
+    #plt.title("RDP, RMS=".format(reconerrorSPIRALrdp[-1]))
+    #plt.subplot(224);plt.imshow(diffSPIRALrdpti)
+    #plt.title("RDP-TI, RMS=".format(reconerrorSPIRALrdpti[-1]))    
+
+    plt.show()
