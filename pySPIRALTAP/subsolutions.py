@@ -50,7 +50,7 @@ def constrainedl2l1denoise(y, W, WT, tau, mu, miniter, maxiter,
         np.savetxt('./dev/y.txt', y)
         print('Saved `y` input file')
         
-    gamma = np.zeros(y.size)
+    gamma = np.zeros(y.shape) #y.size
     lamb = gamma.copy() ## Renamed lambda to lamb as lambda is a reserved keyword in Python
     WTlamb = WT(lamb)
     y = WT(y)
@@ -84,7 +84,4 @@ def constrainedl2l1denoise(y, W, WT, tau, mu, miniter, maxiter,
                 if rel_duality_gap <= tolerance or rel_duality_gap == np.inf:
                     converged = True
         iter += 1
-
-    #print(np.abs(W(theta)))
-    #todo() ## Raise NotImplemented...
-    return np.abs(W(theta)) # Outpur
+    return np.abs(W(theta)) # Output
