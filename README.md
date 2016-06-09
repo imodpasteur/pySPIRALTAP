@@ -34,7 +34,7 @@ pip install --user numpy
 ```
 
 ## Installing `rwt`
-You can install the (Rice Wavelet Toolbox](https://github.com/ricedsp/rwt) by typing the following. Before that, make sure that you have `cmake` installed (`sudo apt-get install cmake` if you use a Debian-derived distribution):
+You can install the [Rice Wavelet Toolbox](https://github.com/ricedsp/rwt) by typing the following. Before that, make sure that you have `cmake` installed (`sudo apt-get install cmake` if you use a Debian-derived distribution):
 
 ```{shell}
 git clone https://github.com/ricedsp/rwt.git
