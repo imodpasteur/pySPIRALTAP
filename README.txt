@@ -13,7 +13,57 @@ Original source: http://drz.ac/code/spiraltap/. The algorithm is described in th
 2. *Code*: still experimental, many methods have not been fully tested.
 
 # Install
-Install can be performed using the following `shell` commands:
+## Requirements
+`pySPIRALTAP` requires the following dependencies:
+- `numpy`
+- `rwt`, the Rice Wavelet Toolbox, available on this page: https://github.com/ricedsp/rwt
+- `scipy.io` (only to run the demo)
+- `pytest` (only to run the tests)
+
+## Installing `numpy`
+Installation using your package manager (Debian/Ubuntu):
+
+```{shell}
+sudo apt-get install python-numpy
+```
+
+Alternatively, if you have `pip` installed, you can install `numpy` by typing the following:
+
+```{shell}
+pip install --user numpy
+```
+
+## Installing `rwt`
+You can install the (Rice Wavelet Toolbox](https://github.com/ricedsp/rwt) by typing the following. Before that, make sure that you have `cmake` installed (`sudo apt-get install cmake` if you use a Debian-derived distribution):
+
+```{shell}
+git clone https://github.com/ricedsp/rwt.git
+cd rwt/python
+cmake .
+sudo make install
+```
+
+And then test if the installation succeeded by typing:
+
+```{shell}
+python -c "import rwt"
+```
+
+If this returns nothing, the installation worked. In case it returns an error such as: 
+
+```{python}
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+ImportError: No module named rwt
+```
+
+This means that the installation failed. It can be because the installation was performed using a different version of Python that is not the default version. So far, I do not have information about how to perform this installation.
+
+More information about the installation can be found in the `INSTALL` file, or on the `rwt` [webpage](https://github.com/ricedsp/rwt).
+
+## Installing `pySPIRALTAP`
+
+Installation can be performed using the following `shell` commands:
 
 ```{shell}
 git clone https://gitlab.com/padouppadoup/pySPIRAL-TAP.git
@@ -62,8 +112,8 @@ Here is a canonical function call with many parameters exposed:
 ```
 
 # Status
-The methods relying on the `rwt` method have not been implemented.
+The methods based on RDP (*recursive dyadic partitions*) have not been implemented yet. Additionnally, the code has not been fully tested, although we did our best to provide a working product.
 
 # License
-This software is released under the MIT license. See the `LICENSE` file for more details.
-The `denoise_bound` code is released under the GNU GPLv2 license and was written by Copyright (2008): Amir Beck and Marc Teboulle.
+- This software is released under the MIT license. See the `LICENSE` file for more details.
+- The `denoise_bound` code is released under the GNU GPLv2 license and was written by Copyright (2008): Amir Beck and Marc Teboulle.
