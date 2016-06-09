@@ -109,7 +109,8 @@
 # ==== Importations
 from __future__ import print_function
 import sys, time, datetime
-import denoise_bound, subsolutions
+import denoise_bound
+import subsolutions
 import numpy as np
 
 # ==== Error & helper functions
