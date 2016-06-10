@@ -111,6 +111,7 @@ from __future__ import print_function
 import sys, time, datetime
 import denoise_bound
 import subsolutions
+import haarApprox
 import numpy as np
 
 # ==== Error & helper functions
@@ -192,10 +193,10 @@ def computesubsolution(step, tau, alpha, penalty, mu, W, WT,
                                                    substopcriterion, subtolerance)
     elif penalty.lower() == 'rdp':
         todo()
-        return haarTVApprox2DNN_recentered(step,tau/alpha,-mu) ## To be implemented
+        return haarApprox.haarTVApprox2DNN_recentered(step,tau/alpha,-mu) ## To be implemented
     elif penalty.lower() == 'rdp-ti':
         todo()
-        return haarTIApprox2DNN_recentered(step,tau/alpha,-mu)
+        return haarApprox.haarTIApprox2DNN_recentered(step,tau/alpha,-mu)
 
 # % =====================================
 # % = Termination Criternia Computation: =
