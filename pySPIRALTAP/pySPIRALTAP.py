@@ -159,9 +159,9 @@ def computeobjective(x,y,Ax,tau,noisetype,logepsilon,penalty,WT):
         WTx = WT(x)
         objective += np.abs(tau*WTx).sum()
     elif penalty.lower=='rdp':
-        todo()
+        todo() # not implemented in the Matlab version
     elif penalty.lower=='rdp-ti':
-        todo()
+        todo() # not implemented in the Matlab version
     elif penalty.lower=='tv':
         objective += tau*tlv(x,'l1') ## tlv comes from the toolbox
     return objective
@@ -212,9 +212,9 @@ def checkconvergence(itern,miniter,stopcriterion,tolerance, dx, x, cputime, obje
         elif stopcriterion == 4: # relative changes in objective
             converged = np.abs(objective[itern]-objective[itern-1])/abs(objective[itern-1]) <=tolerance
         elif stopcriterion == 5: # complementarity condition
-            todo()
+            todo() # not implemented in the Matlab version
         elif stopcriterion == 6: # Norm of lagrangian gradient
-            todo()
+            todo() # not implemented in the Matlab version
             
     return converged 
 
@@ -353,7 +353,7 @@ def SPIRALTAP(y, A, tau,
         # elements, but perhaps too computationally wasteful
         sqrty = np.sqrt(y) # Precompute useful quantities:
         if recenter: # Ensure that recentering is not set
-            todo()
+            todo() # not implemented in the Matlab version
 
     ## Things to check and compute that depend on PENALTY:
     if penalty.lower() == 'canonical':
