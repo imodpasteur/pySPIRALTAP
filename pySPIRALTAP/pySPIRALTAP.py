@@ -358,8 +358,6 @@ def SPIRALTAP(y, A, tau,
     ## Things to check and compute that depend on PENALTY:
     if penalty.lower() == 'canonical':
         pass
-    elif penalty.lower() in ('rdp', 'rdp-ti'):
-        todo()
     elif penalty.lower() == 'tv': ## Cannot have a vectorized tau (yet)
             if type(tau) != float:
                 raise TypeError('A vector regularization parameter ''TAU'' cannot be used in conjuction with the TV penalty.')
@@ -406,42 +404,13 @@ def SPIRALTAP(y, A, tau,
                     Worig = W.copy()
                     WT = lambda x: Worig.T.dot(x) ## Define W and WT as function calls
                     W  = lambda x: Worig.dot(x)
+    elif penalty.lower() in ('rdp', 'rdp-ti'): # todo
+        if monotone: # cannot enforce monotonicity (yet)
+            raise NotImplemented("Explicit computation of the objective function cannot be performed when using the RDP penalty. Therefore monotonicity cannot be enforced. Invalid option ''MONOTONE'' = True for ''PENALTY'' = {}".format(penalty))
+        if saveobjective: # Cannot compute objective function (yet)
+            raise NotImplemented("Explicit computation of the objective function cannot be performed when using the RDP penalty. Invalid option ''SAVEOBJECTIVE'' = True for ''PENALTY'' = {}".format(penalty))
     else:
-        todo()
-    # 	case 'rdp'
-    #         %todo
-    #         % Cannot enforce monotonicity (yet)
-    #         if monotone
-    #             error(['Explicit computation of the objective function ',...
-    #                 'cannot be performed when using the RDP penalty.  ',...
-    #                 'Therefore monotonicity cannot be enforced.  ',...
-    #                 'Invalid option ''MONOTONIC'' = 1 for ',...
-    #                 '''PENALTY'' = ''',penalty,'''.']);
-    #         end
-    #         % Cannot compute objective function (yet)
-    #         if saveobjective
-    #             error(['Explicit computation of the objective function ',...
-    #                 'cannot be performed when using the RDP penalty.  ',...
-    #                 'Invalid option ''SAVEOBJECTIVE'' = 1 for ',...
-    #                 '''PENALTY'' = ''',penalty,'''.']);
-    #         end
-
-    #     case 'rdp-ti'
-    #         % Cannot enforce monotonicity
-    #         if monotone
-    #             error(['Explicit computation of the objective function ',...
-    #                 'cannot be performed when using the RDP penalty.  ',...
-    #                 'Therefore monotonicity cannot be enforced.  ',...
-    #                 'Invalid option ''MONOTONIC'' = 1 for ',...
-    #                 '''PENALTY'' = ''',penalty,'''.']);
-    #         end
-    #         % Cannot compute objective function 
-    #         if saveobjective
-    #             error(['Explicit computation of the objective function ',...
-    #                 'cannot be performed when using the RDP-TI penalty.  ',...
-    #                 'Invalid option ''SAVEOBJECTIVE'' = 1 for ',...
-    #                 '''PENALTY'' = ''',penalty,'''.']);
-    #         end
+        raise TypeError('Unrecognized penalty')
 
     ## ==== check that initialization is a scalar or a vector
     if initialization == []: ## set initialization
