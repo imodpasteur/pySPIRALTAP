@@ -388,10 +388,8 @@ def SPIRALTAP(y, A, tau,
         else: ## W is a matrix
             if WT==[]: ## W is a matrix, and WT not provided.
                 Worig = W.copy()
-                ## /!\ Are we sure we are really defining AT and not WT?
-                print("resetting AT and A")
-                AT = lambda x: Worig.T.dot(x) # Just define function calls.
-                A = lambda x: Worig.dot(x)
+                WT = lambda x: Worig.T.dot(x) # Just define function calls.
+                W = lambda x: Worig.dot(x)
             else: # W is a matrix, and WT provided, we need to check
                 if hasattr(WT, '__call__'): ## WT is a function call
                     try:
