@@ -3,6 +3,7 @@
 ## However, this does not provide clear licensing information.
 
 ## ==== Importations
+from __future__ import print_function
 import numpy as np
 
 ## ==== Helper functions
@@ -24,7 +25,7 @@ def LogLike(x,lamb,noiseType):
 
 def dnsamp2(x):
     """Downsamples by a factor 2 a 2D numpy array"""
-return x[::2,::2]
+    return x[::2,::2]
 
 ## ==== Main Functions
 def haarTIApprox2DNN_recentered(x,pen,mu=None):
@@ -124,7 +125,7 @@ def haarTIApprox2DNN_recentered(x,pen,mu=None):
                 np.roll(waveletScaleNext,-dyadLen/2,0) - (0.25*(1.0-waveletScale)),dyadLen/2,0)
             waveletScaleNext = np.roll(np.roll(
                 np.roll(np.roll(waveletScaleNext,-dyadLen/2, 0) -dyadLen/2, 1)
-                - (0.25*(1.0-waveletScale)), dyadLen/2 0), dyadLen/2, 1)
+                - (0.25*(1.0-waveletScale)), dyadLen/2, 0), dyadLen/2, 1)
         ## construct estimate based on wavelet coefficients and thresholds
         xD1 = (wavelet_n[:,:,iL] + wavelet_m[:,:,iL] + wavelet_k[:,:,iL]) * waveletScale
         xD2 = np.roll(
