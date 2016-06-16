@@ -150,7 +150,7 @@ def haarTIApprox2DNN_recentered(x,pen,mu=None):
     y[y<mu]=mu
     return y
 
-def haarTIApprox2DNN_recentered(x,pen,mu=None):
+def haarTVApprox2DNN_recentered(x,pen,mu=None):
     ## ==== Various variables
     realmin =  np.finfo(np.float64).min
     noiseType = 'Gaussian' # 'Poisson'
