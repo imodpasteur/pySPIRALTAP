@@ -8,6 +8,12 @@ Everything comes from the code by [Zachary Harmany](http://drz.ac) (harmany@wisc
 Original source: http://drz.ac/code/spiraltap/ or https://github.com/zharmany/SPIRAL-TAP (might be more up-to-date). The algorithm is described in this paper:
 > Z. T. Harmany, R. F. Marcia, and R. M. Willett, "This is SPIRAL-TAP: Sparse Poisson Intensity Reconstruction ALgorithms – Theory and Practice," IEEE Transactions on Image Processing, vol. 21, pp. 1084–1096, Mar. 2012.
 
+If you use this code for academic work, please mention it: 
+
+[![DOI](https://zenodo.org/badge/86962247.svg)](https://zenodo.org/badge/latestdoi/86962247)
+
+
+
 # Disclaimer
 
 2. *Code*: still experimental.
