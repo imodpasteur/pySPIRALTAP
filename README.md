@@ -5,12 +5,12 @@ pySPIRAL-TAP, a Python version of SPIRAL-TAP
 
 Everything comes from the code by [Zachary Harmany](http://drz.ac) (harmany@wisc.edu).
 
-Original source: http://drz.ac/code/spiraltap/. The algorithm is described in this paper:
+Original source: http://drz.ac/code/spiraltap/ or https://github.com/zharmany/SPIRAL-TAP (might be more up-to-date). The algorithm is described in this paper:
 > Z. T. Harmany, R. F. Marcia, and R. M. Willett, "This is SPIRAL-TAP: Sparse Poisson Intensity Reconstruction ALgorithms – Theory and Practice," IEEE Transactions on Image Processing, vol. 21, pp. 1084–1096, Mar. 2012.
 
 # Disclaimer
 
-2. *Code*: still experimental, many methods have not been fully tested.
+2. *Code*: still experimental.
 
 # Install
 ## Requirements
