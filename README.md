@@ -12,7 +12,13 @@ Original source: http://drz.ac/code/spiraltap/ or https://github.com/zharmany/SP
 
 2. *Code*: still experimental.
 
-# Install
+# Installation from pip (recommended)
+
+```{shell}
+pip install pySPIRALTAP
+```
+
+# Installation from the git repository
 ## Requirements
 `pySPIRALTAP` requires the following dependencies:
 - `numpy`
